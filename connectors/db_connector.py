@@ -4,6 +4,9 @@ import psycopg2
 from dotenv import load_dotenv
 from util.print_util import verbose_print
 
+
+# singleton
+# manage connection and cursor to DB
 class DBConnector(object):
     __conn, __cur, __initialized, obj = None, None, False, None
 
