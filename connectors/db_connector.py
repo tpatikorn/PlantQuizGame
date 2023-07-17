@@ -1,7 +1,9 @@
 import os
 import random
+
 import psycopg2
 from dotenv import load_dotenv
+
 from util.print_util import verbose_print
 
 
@@ -37,40 +39,65 @@ class DBConnector(object):
             print("db connector failed")
             print(e)
 
-    def check_connection(self, verbose=False):
-        if not self.__initialized:
+    @staticmethod
+    def get_connection():
+        if not DBConnector.__initialized:
+            DBConnector()
+        return DBConnector.__conn
+
+    @staticmethod
+    def get_cursor():
+        if not DBConnector.__initialized:
+            DBConnector()
+        return DBConnector.__cur
+
+    @staticmethod
+    def is_db_initialized():
+        return DBConnector.__initialized
+
+    @staticmethod
+    def check_connection(verbose=False):
+        if not DBConnector.__initialized:
             return False, False
         conn_status, cur_status = False, False
-        if self.__conn.closed == 0:
+        if DBConnector.__conn.closed == 0:
             conn_status = True
             verbose_print("connection is alive", verbose)
         else:
             verbose_print("connection is closed", verbose)
-        if self.__cur.closed == 0:
+        if DBConnector.__cur.closed == 0:
             cur_status = True
             verbose_print("cursor is alive", verbose)
         else:
             verbose_print("cursor is closed", verbose)
         return conn_status, cur_status
 
-    def get_connector_cursor(self):
-        return self.__conn, self.__cur
-
-    def terminate(self, verbose=False):
-        if self.__initialized:
-            self.__cur.close()
-            self.__conn.close()
+    @staticmethod
+    def terminate(verbose=False):
+        if DBConnector.__initialized:
+            DBConnector.__cur.close()
+            DBConnector.__conn.close()
             verbose_print("DBConnector has been terminated", verbose)
         else:
             verbose_print("DBConnector wasn't initialized", verbose)
 
 
+def get_connection():
+    return DBConnector.get_connection()
+
+
+def get_cursor():
+    return DBConnector.get_cursor()
+
+
+def terminate_db_connection():
+    DBConnector.terminate()
+
+
 if __name__ == "__main__":
-    dbc = DBConnector()
-    dbc2 = DBConnector()
-    dbc.check_connection()
-    conn, cur = dbc.get_connector_cursor()
-    conn2, cur2 = dbc.get_connector_cursor()
+    DBConnector()
+    conn, cur = get_connection(), get_cursor()
+    conn2, cur2 = get_connection(), get_cursor()
     cur.execute("create table if not exists test (id serial primary key, num float);")
     conn.commit()
     cur.execute(f"insert into test (num) values({random.random()})")
@@ -80,8 +107,7 @@ if __name__ == "__main__":
     cur.execute("select * from test")
     all_results = cur.fetchall()
     print(*all_results, sep="\n")
+    DBConnector.check_connection()
     print("terminating dbc, dbc2 should also be closed")
-    dbc.terminate()
-    dbc.check_connection()
-    dbc2.check_connection()
-    dbc2.terminate()
+    terminate_db_connection()
+    DBConnector.check_connection()
