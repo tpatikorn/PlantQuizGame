@@ -61,16 +61,13 @@ def _traverse_path(path, main_cat_level=-1, level=0, image_category=None):
                         f"do update set is_active=True returning id;")
             conn.commit()
             new_image_cat_id = cur.fetchone()[0]
-        result.append(sync_image_folder_with_db(os.path.join(path, sf), main_cat_level, level + 1, new_image_cat_id))
+        result.append(_traverse_path(os.path.join(path, sf), main_cat_level, level + 1, new_image_cat_id))
     return result
 
 
 if __name__ == "__main__":
     load_dotenv()
     root_path = os.getenv("IMAGE_ROOT")
-    plant_type_level = 1
-    all_images = sync_image_folder_with_db(root_path, plant_type_level)
+    all_images = sync_image_folder_with_db(root_path, main_cat_level=1)
     print(all_images)
     DBConnector().terminate()
-
-
