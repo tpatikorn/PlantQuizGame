@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block header %}
+    <h1>{% block title %}Main Page{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<script>
+    $(document).ready(function () {
+        $("#hello").html("hahaha");
+    });
+</script>
+<div id="hello">
+    {{ g.user }}
+</div>
+<div id="hello2">
+    {{ g.user }}
+</div>
+{% endblock %}

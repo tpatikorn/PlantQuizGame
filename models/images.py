@@ -43,6 +43,7 @@ class DatabaseObject:
 
 class Image(DatabaseObject):
     id, filename, image_category_id, path, is_active = None, None, None, None, None
+    image_category = None
 
     # These objects aren't meant to be created manually, but instead use data from DB to generate
     def __init__(self, args=()) -> None:
@@ -53,6 +54,7 @@ class Image(DatabaseObject):
 
 class ImageCategory(DatabaseObject):
     id, name, description, parent_category_id, is_active = None, None, None, None, None
+    parent_category = None
 
     # These objects aren't meant to be created manually, but instead use data from DB to generate
     def __init__(self, args=()) -> None:

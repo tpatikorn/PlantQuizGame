@@ -13,12 +13,12 @@ class DBConnector(object):
     __conn, __cur, __initialized, obj = None, None, False, None
 
     def __new__(cls):
-        cls.obj = super(DBConnector, cls).__new__(cls)
         if cls.__initialized:
             return cls.obj
         try:
             load_dotenv()
             # Connect to an existing database
+            cls.obj = super(DBConnector, cls).__new__(cls)
             cls.__conn = psycopg2.connect(user=os.getenv("DB_USER"),
                                           password=os.getenv("DB_PASS"),
                                           host=os.getenv("DB_SERVER"),
@@ -29,9 +29,9 @@ class DBConnector(object):
             cls.__cur = cls.__conn.cursor()
             cls.__initialized = True
             cls.obj.__dict__ = {
-                "__conn": cls.__conn,
-                "__cur": cls.__cur,
-                "__initialized": True
+                "conn": cls.__conn,
+                "cur": cls.__cur,
+                "initialized": True
             }
             verbose_print("DBConnector has been initialized")
             return cls.obj
@@ -41,19 +41,11 @@ class DBConnector(object):
 
     @staticmethod
     def get_connection():
-        if not DBConnector.__initialized:
-            DBConnector()
-        return DBConnector.__conn
+        return DBConnector().__conn
 
     @staticmethod
     def get_cursor():
-        if not DBConnector.__initialized:
-            DBConnector()
-        return DBConnector.__cur
-
-    @staticmethod
-    def is_db_initialized():
-        return DBConnector.__initialized
+        return DBConnector().__cur
 
     @staticmethod
     def check_connection(verbose=False):
@@ -73,8 +65,31 @@ class DBConnector(object):
         return conn_status, cur_status
 
     @staticmethod
+    def execute(*args):
+        return DBConnector().__cur.execute(*args)
+
+    @staticmethod
+    def commit():
+        return DBConnector().__conn.commit()
+
+    @staticmethod
+    def fetchone():
+        try:
+            return DBConnector().__cur.fetchone()
+        except psycopg2.ProgrammingError:
+            return None
+
+    @staticmethod
+    def fetchall():
+        try:
+            return DBConnector().__cur.fetchall()
+        except psycopg2.ProgrammingError:
+            return []
+
+    @staticmethod
     def terminate(verbose=False):
         if DBConnector.__initialized:
+            DBConnector.__initialized = False
             DBConnector.__cur.close()
             DBConnector.__conn.close()
             verbose_print("DBConnector has been terminated", verbose)
@@ -90,24 +105,25 @@ def get_cursor():
     return DBConnector.get_cursor()
 
 
-def terminate_db_connection():
-    DBConnector.terminate()
+def terminate_db_connection(verbose=False):
+    DBConnector.terminate(verbose)
 
+
+db = DBConnector()
 
 if __name__ == "__main__":
-    DBConnector()
-    conn, cur = get_connection(), get_cursor()
-    conn2, cur2 = get_connection(), get_cursor()
-    cur.execute("create table if not exists test (id serial primary key, num float);")
-    conn.commit()
-    cur.execute(f"insert into test (num) values({random.random()})")
-    conn.commit()
-    cur2.execute(f"insert into test (num) values({random.random()})")
-    conn2.commit()
-    cur.execute("select * from test")
-    all_results = cur.fetchall()
+    db = DBConnector()
+    db2 = DBConnector()
+    db.execute("create table if not exists test (id serial primary key, num float);")
+    db.commit()
+    db.execute(f"insert into test (num) values({random.random()})")
+    db.commit()
+    DBConnector().get_cursor().execute(f"insert into test (num) values({random.random()})")
+    DBConnector().get_connection().commit()
+    DBConnector().get_cursor().execute("select * from test")
+    all_results = DBConnector().get_cursor().fetchall()
     print(*all_results, sep="\n")
-    DBConnector.check_connection()
+    db.check_connection(verbose=True)
     print("terminating dbc, dbc2 should also be closed")
-    terminate_db_connection()
-    DBConnector.check_connection()
+    terminate_db_connection(verbose=True)
+    db2.check_connection(verbose=True)

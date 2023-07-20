@@ -68,7 +68,7 @@ def _traverse_path(path: str, main_cat_level: int = -1, level: int = 0,
 
 if __name__ == "__main__":
     load_dotenv()
-    root_path = os.getenv("IMAGE_ROOT")
-    all_images = sync_image_folder_with_db(root_path, main_cat_level=1)
+    all_image_path = os.getenv("IMAGE_ROOT")
+    all_images = sync_image_folder_with_db(all_image_path, main_cat_level=1)
     print(all_images)
     DBConnector().terminate()
