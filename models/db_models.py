@@ -18,7 +18,7 @@ class ImageCategory(AbstractDatabaseObject):
 class User(AbstractDatabaseObject):
     id, username, password, email, admin, active = None, None, None, None, None, None
     table_name = "users"
-    field_list = ["id", "user_name", "password", "email", "admin", "active"]
+    field_list = ["id", "username", "password", "email", "admin", "active"]
 
 
 if __name__ == "__main__":

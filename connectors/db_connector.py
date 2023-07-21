@@ -89,7 +89,7 @@ def execute_commit_fetch(*args):
     db_ = DBConnector()
     db_.execute(*args)
     db_.commit()
-    result = db_.fetchall()[0]
+    result = db_.fetchone()
     db_.terminate()
     return result
 
@@ -98,7 +98,8 @@ def execute_commit_fetch(*args):
 # takes same arguments as execute
 # will open and close connection & cursor (open late, close early)
 def select_one(*args):
-    return select_all(*args, size=1)[0]
+    result = select_all(*args, size=1)
+    return None if len(result) == 0 else result[0]
 
 
 # execute query and return the result of fetchmany with specified size

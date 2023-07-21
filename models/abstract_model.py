@@ -15,7 +15,6 @@ class AbstractDatabaseObject:
         if len(self.field_list) != len(args):
             raise KeyError(f"{self.table_name} object expected {len(self.field_list)} attributes, provided {len(args)}")
         for f in self.field_list:
-            print(args)
             setattr(self, f, args[f])
 
     def __str__(self):

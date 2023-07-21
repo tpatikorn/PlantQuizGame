@@ -48,7 +48,7 @@ def login():
 
         if user is not None:
             session.clear()
-            session['user_id'] = user[0]
+            session['user_id'] = user.id
             return render_template('index.html')
 
     return render_template('auth/login.html')
