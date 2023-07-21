@@ -1,5 +1,4 @@
-from connectors.db_connector import get_cursor as cur
-from connectors.db_connector import terminate_db_connection
+from connectors import db_connector as dbc
 from models.images import Image, ImageCategory
 
 
@@ -36,32 +35,34 @@ class ImageCacheManager(object):
         cat_done = []
         while len(cat_queue) > 0:
             this_cat = cat_queue.pop()
-            for c in list(filter(lambda _: _.parent_category_id == this_cat.id, cats)):
-                c.parent_category = this_cat
-                cat_queue.append(c)
+            for c_ in list(filter(lambda _: _.parent_category_id == this_cat.id, cats)):
+                c_.parent_category = this_cat
+                cat_queue.append(c_)
             cats = list(filter(lambda _: _.parent_category_id != this_cat.id, cats))
             cat_done.append(this_cat)
         ImageCacheManager.__image_categories = cat_done + cat_queue
 
         ImageCacheManager.__images = dict()
-        imgs = fetch_images()
+        all_img = fetch_images()
         for cat in ImageCacheManager.__image_categories:
-            ImageCacheManager.__images[cat] = list(filter(lambda _: _.image_category_id == cat.id, imgs))
+            ImageCacheManager.__images[cat] = list(filter(lambda _: _.image_category_id == cat.id, all_img))
 
 
 def fetch_image_categories(query_dict: dict = None) -> list[ImageCategory]:
     if query_dict is None:
         query_dict = {}
-    cur().execute(ImageCategory().get_query(query_dict.keys()), list(query_dict.values()))
-    result = list(map(lambda _: ImageCategory(_), cur().fetchall()))
+
+    result = list(map(lambda _: ImageCategory(_),
+                      dbc.select_all(ImageCategory().get_query(query_dict.keys()), list(query_dict.values()))))
     return result
 
 
 def fetch_images(query_dict: dict = None) -> list[Image]:
     if query_dict is None:
         query_dict = {}
-    cur().execute(Image().get_query(query_dict.keys()), list(query_dict.values()))
-    return list(map(lambda _: Image(_), cur().fetchall()))
+
+    return list(map(lambda _: Image(_),
+                    dbc.select_all(Image().get_query(query_dict.keys()), list(query_dict.values()))))
 
 
 if __name__ == "__main__":
@@ -81,4 +82,3 @@ if __name__ == "__main__":
     # print("=============================")
     # print(*fetch_image_categories({"name": "banana", "is_active": True}), sep="\n")
     # print("=============================")
-    terminate_db_connection()

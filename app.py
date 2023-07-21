@@ -1,7 +1,6 @@
 from flask import Flask, jsonify, send_file
 from flask_cors import CORS
 from waitress import serve
-from connectors.db_connector import db
 
 
 def create_app():
@@ -13,9 +12,16 @@ def create_app():
         SECRET_KEY='dev',
     )
 
+    @app.before_request
+    def init(*args):
+        pass
+
+    @app.teardown_appcontext
+    def teardown(*args):
+        pass
+
     # enable CORS
     CORS(app, resources={r'/*': {'origins': '*'}})
-    app.teardown_appcontext(db.terminate)
     import auth
     app.register_blueprint(auth.bp)
 

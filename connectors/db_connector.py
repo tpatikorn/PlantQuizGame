@@ -78,7 +78,19 @@ def execute_commit(*args):
     db_ = DBConnector()
     db_.execute(*args)
     result = db_.commit()
-    test_db.terminate()
+    db_.terminate()
+    return result
+
+
+# execute query, commit, and return the result of fetchall
+# takes same arguments as execute
+# will open and close connection & cursor (open late, close early)
+def execute_commit_fetch(*args):
+    db_ = DBConnector()
+    db_.execute(*args)
+    db_.commit()
+    result = db_.fetchall()[0]
+    db_.terminate()
     return result
 
 
@@ -86,14 +98,14 @@ def execute_commit(*args):
 # takes same arguments as execute
 # will open and close connection & cursor (open late, close early)
 def select_one(*args):
-    return select_all(*args, 1)[0]
+    return select_all(*args, size=1)[0]
 
 
 # execute query and return the result of fetchmany with specified size
 # takes same arguments as execute
 # will open and close connection & cursor (open late, close early)
 def select_many(*args, size):
-    return select_all(*args, size)
+    return select_all(*args, size=size)
 
 
 # execute query and return the result of fetchall
@@ -119,12 +131,11 @@ if __name__ == "__main__":
     test_db = DBConnector()
     test_db.execute("create table if not exists test (id serial primary key, num float);")
     test_db.commit()
-    test_db.execute(f"insert into test (num) values({random.random()})")
-    test_db.commit()
-    test_db.get_cursor().execute(f"insert into test (num) values({random.random()})")
-    test_db.get_connection().commit()
-    test_db.get_cursor().execute("select * from test")
-    all_results = test_db.get_cursor().fetchall()
+    execute_commit(f"insert into test (num) values({random.random()})")
+    execute_commit(f"insert into test (num) values({random.random()})")
+    one_result = select_one("select * from test")
+    print("xxx", one_result)
+    all_results = select_all("select * from test")
     print(*all_results, sep="\n")
     test_db.check_connection(verbose=True)
     print("terminating dbc, dbc2 should also be closed")

@@ -6,7 +6,7 @@ from flask import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from connectors.db_connector import db
+from connectors import db_connector as dbc
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -28,11 +28,10 @@ def register():
 
         if error is None:
             try:
-                db.execute(
+                dbc.execute_commit(
                     "INSERT INTO users (username, password, email) VALUES (%s, %s, %s)",
                     (username, generate_password_hash(password), email),
                 )
-                db.commit()
             except psycopg2.Error:
                 error = f"User {username} is already registered."
             else:
@@ -49,10 +48,7 @@ def login():
         username = request.form['username']
         password = request.form['password']
         error = None
-        db.execute(
-            'SELECT * FROM users WHERE username = %s', (username,)
-        )
-        user = db.fetchone()
+        user = dbc.select_one('SELECT * FROM users WHERE username = %s', (username,))
 
         if user is None:
             error = 'Incorrect username.'
@@ -76,10 +72,7 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
-        db.execute(
-            'SELECT * FROM users WHERE id = %s', (user_id,)
-        )
-        g.user = db.fetchone()
+        g.user = dbc.select_one('SELECT * FROM users WHERE id = %s', (user_id,))
 
 
 @bp.route('/logout')

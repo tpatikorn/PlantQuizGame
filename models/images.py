@@ -7,6 +7,7 @@ class DatabaseObject:
     - len(args) == len(field_list) (__initialized flag will be set to True, all fields will be populated)
     - len(args) == 0 (blank object, __initialized flag will be set to False, and all fields to None)
     """
+
     def __init__(self, table_name, field_list, args) -> None:
         super().__init__()
         self.__table_name = table_name
@@ -19,8 +20,9 @@ class DatabaseObject:
             self.__initialized = True
             if len(field_list) != len(args):
                 raise KeyError(f"{table_name} object expected {len(field_list)} attributes, provided {len(args)}")
-            for i in range(0, min(len(field_list), len(args))):
-                setattr(self, field_list[i], args[i])
+            for f in field_list:
+                print(args)
+                setattr(self, f, args[f])
 
     def get_table_name(self):
         return self.__table_name
@@ -64,14 +66,22 @@ class ImageCategory(DatabaseObject):
 
 
 if __name__ == "__main__":
-    img_cat1 = ImageCategory([12, "durianx", "hahahahahahahahahah", 1, True])
+    img_cat1 = ImageCategory({"id": 12,
+                              "name": "durianx",
+                              "description": "hahahahahahahahahah",
+                              "parent_category_id": 1,
+                              "is_active": True})
     print(img_cat1.id)
     print(img_cat1.name)
     print(img_cat1.description)
     print(img_cat1.parent_category_id)
     print(img_cat1)
     print(ImageCategory().get_query(["name"]))
-    img1 = Image([9, "durianx.jpg", 1, "hello/durianx.jpg", True])
+    img1 = Image({"id": 9,
+                  "filename": "durianx.jpg",
+                  "image_category_id": 1,
+                  "path": "hello/durianx.jpg",
+                  "is_active": True})
     print(img1.id)
     print(img1.path)
     print(img1.filename)
