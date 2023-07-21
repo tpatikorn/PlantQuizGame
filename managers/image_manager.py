@@ -1,5 +1,5 @@
 from connectors import db_connector as dbc
-from models.images import Image, ImageCategory
+from models.db_models import Image, ImageCategory
 
 
 class ImageCacheManager(object):
@@ -53,7 +53,7 @@ def fetch_image_categories(query_dict: dict = None) -> list[ImageCategory]:
         query_dict = {}
 
     result = list(map(lambda _: ImageCategory(_),
-                      dbc.select_all(ImageCategory().get_query(query_dict.keys()), list(query_dict.values()))))
+                      dbc.select_all(ImageCategory.get_query(list(query_dict.keys())), list(query_dict.values()))))
     return result
 
 
@@ -62,7 +62,7 @@ def fetch_images(query_dict: dict = None) -> list[Image]:
         query_dict = {}
 
     return list(map(lambda _: Image(_),
-                    dbc.select_all(Image().get_query(query_dict.keys()), list(query_dict.values()))))
+                    dbc.select_all(Image.get_query(list(query_dict.keys())), list(query_dict.values()))))
 
 
 if __name__ == "__main__":
@@ -71,14 +71,14 @@ if __name__ == "__main__":
         print(c, c.parent_category)
     for c, i in ImageCacheManager.get_images().items():
         print(c, i)
-    # print("=============================")
-    # print(*fetch_image_categories(), sep="\n")
+    print("=============================")
+    print(*fetch_image_categories(), sep="\n")
     # print("=============================")
     # print(*fetch_images(), sep="\n")
     # print("=============================")
     # print(*fetch_images({"image_category_id": 6}), sep="\n")
     # print("=============================")
-    # print(*fetch_image_categories({"name": "banana", "is_active": False}), sep="\n")
+    # print(*fetch_image_categories({"name": "banana", "active": False}), sep="\n")
     # print("=============================")
-    # print(*fetch_image_categories({"name": "banana", "is_active": True}), sep="\n")
+    # print(*fetch_image_categories({"name": "banana", "active": True}), sep="\n")
     # print("=============================")

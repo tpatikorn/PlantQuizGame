@@ -4,9 +4,9 @@ import psycopg2
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
-from werkzeug.security import check_password_hash, generate_password_hash
 
 from connectors import db_connector as dbc
+from managers import user_manager
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -28,17 +28,13 @@ def register():
 
         if error is None:
             try:
-                dbc.execute_commit(
-                    "INSERT INTO users (username, password, email) VALUES (%s, %s, %s)",
-                    (username, generate_password_hash(password), email),
-                )
+                new_id = user_manager.register(username, password, email)
+                print(new_id)
             except psycopg2.Error:
                 error = f"User {username} is already registered."
             else:
                 return redirect(url_for("auth.login"))
-
         flash(error)
-
     return render_template('auth/register.html')
 
 
@@ -48,19 +44,12 @@ def login():
         username = request.form['username']
         password = request.form['password']
         error = None
-        user = dbc.select_one('SELECT * FROM users WHERE username = %s', (username,))
+        user = user_manager.login(username, password)
 
-        if user is None:
-            error = 'Incorrect username.'
-        elif not check_password_hash(user[2], password):
-            error = 'Incorrect password.'
-
-        if error is None:
+        if user is not None:
             session.clear()
             session['user_id'] = user[0]
             return render_template('index.html')
-
-        flash(error)
 
     return render_template('auth/login.html')
 
@@ -72,7 +61,7 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
-        g.user = dbc.select_one('SELECT * FROM users WHERE id = %s', (user_id,))
+        g.user = user_manager.find_userid(user_id)
 
 
 @bp.route('/logout')
