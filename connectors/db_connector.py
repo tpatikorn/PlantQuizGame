@@ -2,128 +2,131 @@ import os
 import random
 
 import psycopg2
+import psycopg2.extras
 from dotenv import load_dotenv
 
 from util.print_util import verbose_print
 
 
-# singleton
 # manage connection and cursor to DB
+# recommend using helper function instead of using the DBConnector class itself
 class DBConnector(object):
-    __conn, __cur, __initialized, obj = None, None, False, None
+    __conn, __cur = None, None
 
-    def __new__(cls):
-        if cls.__initialized:
-            return cls.obj
+    def __init__(self):
         try:
             load_dotenv()
             # Connect to an existing database
-            cls.obj = super(DBConnector, cls).__new__(cls)
-            cls.__conn = psycopg2.connect(user=os.getenv("DB_USER"),
-                                          password=os.getenv("DB_PASS"),
-                                          host=os.getenv("DB_SERVER"),
-                                          port="5432",
-                                          database=os.getenv("DB_DB"))
+            self.__conn = psycopg2.connect(user=os.getenv("DB_USER"),
+                                           password=os.getenv("DB_PASS"),
+                                           host=os.getenv("DB_SERVER"),
+                                           port="5432",
+                                           database=os.getenv("DB_DB"))
 
             # Create a cursor to perform database operations
-            cls.__cur = cls.__conn.cursor()
-            cls.__initialized = True
-            cls.obj.__dict__ = {
-                "conn": cls.__conn,
-                "cur": cls.__cur,
-                "initialized": True
-            }
+            self.__cur = self.__conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
             verbose_print("DBConnector has been initialized")
-            return cls.obj
         except Exception as e:
             print("db connector failed")
             print(e)
 
-    @staticmethod
-    def get_connection():
-        return DBConnector().__conn
+    def get_connection(self):
+        return self.__conn
 
-    @staticmethod
-    def get_cursor():
-        return DBConnector().__cur
+    def get_cursor(self):
+        return self.__cur
 
-    @staticmethod
-    def check_connection(verbose=False):
-        if not DBConnector.__initialized:
-            return False, False
-        conn_status, cur_status = False, False
-        if DBConnector.__conn.closed == 0:
-            conn_status = True
-            verbose_print("connection is alive", verbose)
-        else:
-            verbose_print("connection is closed", verbose)
-        if DBConnector.__cur.closed == 0:
-            cur_status = True
-            verbose_print("cursor is alive", verbose)
-        else:
-            verbose_print("cursor is closed", verbose)
-        return conn_status, cur_status
+    def check_connection(self, verbose=False):
+        verbose_print(f"connection: {self.__conn.closed}", verbose)
+        verbose_print(f"cursor: {self.__cur.closed}", verbose)
+        return self.__conn.closed, self.__cur.closed
 
-    @staticmethod
-    def execute(*args):
-        return DBConnector().__cur.execute(*args)
+    def terminate(self, verbose=False):
+        self.__cur.close()
+        self.__conn.close()
+        verbose_print("DBConnector has been terminated", verbose)
 
-    @staticmethod
-    def commit():
-        return DBConnector().__conn.commit()
+    def execute(self, *args):
+        return self.__cur.execute(*args)
 
-    @staticmethod
-    def fetchone():
+    def commit(self):
+        return self.__conn.commit()
+
+    def fetchone(self):
         try:
-            return DBConnector().__cur.fetchone()
+            return self.__cur.fetchone()
         except psycopg2.ProgrammingError:
             return None
 
-    @staticmethod
-    def fetchall():
+    def fetchmany(self, size):
         try:
-            return DBConnector().__cur.fetchall()
+            return self.__cur.fetchmany(size)
         except psycopg2.ProgrammingError:
-            return []
+            return None
 
-    @staticmethod
-    def terminate(verbose=False):
-        if DBConnector.__initialized:
-            DBConnector.__initialized = False
-            DBConnector.__cur.close()
-            DBConnector.__conn.close()
-            verbose_print("DBConnector has been terminated", verbose)
+    def fetchall(self):
+        try:
+            return self.__cur.fetchall()
+        except psycopg2.ProgrammingError:
+            return None
+
+
+# execute query and return the result of commit
+# takes same arguments as execute
+# will open and close connection & cursor (open late, close early)
+def execute_commit(*args):
+    db_ = DBConnector()
+    db_.execute(*args)
+    result = db_.commit()
+    test_db.terminate()
+    return result
+
+
+# execute query and return the result of fetchone
+# takes same arguments as execute
+# will open and close connection & cursor (open late, close early)
+def select_one(*args):
+    return select_all(*args, 1)[0]
+
+
+# execute query and return the result of fetchmany with specified size
+# takes same arguments as execute
+# will open and close connection & cursor (open late, close early)
+def select_many(*args, size):
+    return select_all(*args, size)
+
+
+# execute query and return the result of fetchall
+# takes same arguments as execute
+# will open and close connection & cursor (open late, close early)
+def select_all(*args, size=-1):
+    db_ = DBConnector()
+    try:
+        db_.execute(*args)
+        if size == 1:
+            result = [db_.fetchone()]
+        elif size > 0:
+            result = db_.fetchmany(5)
         else:
-            verbose_print("DBConnector wasn't initialized", verbose)
+            result = db_.fetchall()
+    except psycopg2.ProgrammingError:
+        result = []
+    db_.terminate()
+    return result
 
-
-def get_connection():
-    return DBConnector.get_connection()
-
-
-def get_cursor():
-    return DBConnector.get_cursor()
-
-
-def terminate_db_connection(verbose=False):
-    DBConnector.terminate(verbose)
-
-
-db = DBConnector()
 
 if __name__ == "__main__":
-    db = DBConnector()
-    db2 = DBConnector()
-    db.execute("create table if not exists test (id serial primary key, num float);")
-    db.commit()
-    db.execute(f"insert into test (num) values({random.random()})")
-    db.commit()
-    DBConnector().get_cursor().execute(f"insert into test (num) values({random.random()})")
-    DBConnector().get_connection().commit()
-    DBConnector().get_cursor().execute("select * from test")
-    all_results = DBConnector().get_cursor().fetchall()
+    test_db = DBConnector()
+    test_db.execute("create table if not exists test (id serial primary key, num float);")
+    test_db.commit()
+    test_db.execute(f"insert into test (num) values({random.random()})")
+    test_db.commit()
+    test_db.get_cursor().execute(f"insert into test (num) values({random.random()})")
+    test_db.get_connection().commit()
+    test_db.get_cursor().execute("select * from test")
+    all_results = test_db.get_cursor().fetchall()
     print(*all_results, sep="\n")
-    db.check_connection(verbose=True)
+    test_db.check_connection(verbose=True)
     print("terminating dbc, dbc2 should also be closed")
-    terminate_db_connection(verbose=True)
-    db2.check_connection(verbose=True)
+    test_db.terminate(verbose=True)
+    test_db.check_connection(verbose=True)
