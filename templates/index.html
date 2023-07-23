@@ -5,15 +5,15 @@
 {% endblock %}
 
 {% block content %}
-<script>
-    $(document).ready(function () {
-        $("#hello").html("hahaha");
-    });
-</script>
-<div id="hello">
-    {{ g.user }}
-</div>
-<div id="hello2">
-    {{ g.user }}
-</div>
+    <script>
+        $(document).ready(function () {
+            $("#hello").html("hahaha");
+        });
+    </script>
+    <div id="hello">
+        {{ g.user }}
+    </div>
+    <div id="hello2">
+        {{ g.user }}
+    </div>
 {% endblock %}

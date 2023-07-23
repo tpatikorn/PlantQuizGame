@@ -52,8 +52,8 @@ def __traverse_path(path: str, main_cat_level: int, dbc: DBConnector,
     result = [(path, level, items)]
     if image_category is not None:
         for i in items:
-            dbc.execute(f"insert into images (filename, image_category_id, path) "
-                        f"values ('{i}', {image_category}, '{os.path.join(path, i)}') "
+            dbc.execute(f"insert into images (filename, image_category_id, dir) "
+                        f"values ('{i}', {image_category}, '{path}') "
                         f"on conflict on constraint images_filename_image_category_id_key "
                         f"do update set active=True;")
             dbc.commit()
@@ -79,4 +79,4 @@ if __name__ == "__main__":
     load_dotenv()
     all_image_path = os.getenv("IMAGE_ROOT")
     all_images = sync_image_folder_with_db(all_image_path, main_cat_level=1)
-    print(all_images)
+    print(len(all_images))

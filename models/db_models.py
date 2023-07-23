@@ -2,10 +2,10 @@ from models.abstract_model import AbstractDatabaseObject
 
 
 class Image(AbstractDatabaseObject):
-    id, filename, image_category_id, path, active = None, None, None, None, None
+    id, filename, image_category_id, dir, active = None, None, None, None, None
     image_category = None
     table_name = "images"
-    field_list = ["id", "filename", "image_category_id", "path", "active"]
+    field_list = ["id", "filename", "image_category_id", "dir", "active"]
 
 
 class ImageCategory(AbstractDatabaseObject):
@@ -36,10 +36,10 @@ if __name__ == "__main__":
     img1 = Image({"id": 9,
                   "filename": "durianx.jpg",
                   "image_category_id": 1,
-                  "path": "hello/durianx.jpg",
+                  "dir": "hello/durianx.jpg",
                   "active": True})
     print(img1.id)
-    print(img1.path)
+    print(img1.dir)
     print(img1.filename)
     print(img1.image_category_id)
     print(img1)

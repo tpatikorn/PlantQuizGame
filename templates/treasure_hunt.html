@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block header %}
+    <h1>{% block title %}Treasure Hunt: หาใบทุเรียน{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <script type="text/javascript">
+        let scores = {correct: 0, incorrect: 0};
+        let playing = true;
+        let timer;
+        $(function () {
+            $('#start').on('click', function () {
+                alert("เริ่ม!")
+                $(".img").show();
+                const start_time = Date.now();
+
+                timer = setInterval(function () {
+                    const elapse = Date.now() - start_time;
+                    let padding0 = "";
+                    if((elapse/1000 % 60) < 10) {
+                        padding0 = "0";
+                    }
+                    $("#seconds").html(padding0+(elapse/1000 % 60).toFixed(3));
+                    $("#minutes").html(pad(Math.floor(elapse / 60_000)));
+                }, 5);
+            });
+            $('.img').on('click', function () {
+                if (playing && !$(this).data("selected")) {
+                    const correctness = $(this).data("correct");
+                    if (correctness === 1) {
+                        $(this).css("border", "2px solid green");
+                        scores.correct += 1
+                    } else {
+                        $(this).css("border", "2px solid red");
+                        scores.incorrect += 1
+                    }
+                    $(this).data("selected", true);
+                    $("#correct").html(scores.correct);
+                    $("#incorrect").html(scores.incorrect);
+                    if (scores.correct === 5) {
+                        alert("You win! You picked all the correct images!");
+                        playing = false;
+                        clearInterval(timer);
+                    }
+                }
+            });
+            let sec = 0;
+
+            function pad(val) {
+                return val > 9 ? val : "0" + val;
+            }
+
+        });
+
+    </script>
+    <input type="button" id="start" value="start">
+    <label for="correct" style="color:green">#correct</label>
+    <span id="correct" style="color:green">0</span>
+    <label for="incorrect" style="color:red">#incorrect</label>
+    <span id="incorrect" style="color:red">0</span>
+    <label for="minutes">เวลาที่ใช้: </label>
+    <span id="minutes"></span>:<span id="seconds"></span>
+    <div id="quiz">
+        <table>
+            {% for i in range(0, dim*dim) %}
+                {% if dim*dim == 25 and i % 5 == 0 %}
+                    <tr>
+                {% endif %}
+            <td id="{{ img[i].id }}" class="td_img">
+                <img src="images/{{ img[i].id }}" class="img" alt="{{ img[i].filename }}"
+                     data-correct="{% if ans[i] %}1{% else %}0{% endif %}" data-selected="false"/>
+            </td>
+            {% if dim*dim == 25 and (i + 1) % 5 == 0 %}
+                </tr>
+            {% endif %}
+            {% endfor %}
+        </table>
+    </div>
+
+{% endblock %}

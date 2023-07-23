@@ -18,6 +18,9 @@ class AbstractDatabaseObject:
             setattr(self, f, args[f])
 
     def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
         return f"Object from table: {self.table_name} | " \
             + " | ".join([f"{f}: {getattr(self, f)}" for f in self.field_list])
 

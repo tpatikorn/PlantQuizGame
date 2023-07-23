@@ -24,3 +24,7 @@ nav ul li a, nav ul li span, header .action { display: block; padding: 0.5rem; }
 .content textarea { min-height: 12em; resize: vertical; }
 input.danger { color: #cc2f2e; }
 input[type=submit] { align-self: start; min-width: 10em; }
+.img {width: 100px; height: 100px; border:2px solid transparent; display: none}
+.td_img {width: 100px; height: 100px; border: 1px solid grey}
+.show {display: block}
+.hide {display: none}

@@ -25,8 +25,15 @@ class ImageCacheManager(object):
         return ImageCacheManager.__images
 
     @staticmethod
-    def get_image_categories() -> list[ImageCategory]:
-        return ImageCacheManager.__image_categories
+    def get_image_categories(exclude_main=False, exclude_sub=False) -> list[ImageCategory]:
+        if not exclude_main and not exclude_sub:
+            return ImageCacheManager.__image_categories
+        elif not exclude_main:
+            return list(filter(lambda _: _.parent_category_id is None, ImageCacheManager.__image_categories))
+        elif not exclude_sub:
+            return list(filter(lambda _: _.parent_category_id is not None, ImageCacheManager.__image_categories))
+        else:
+            return []
 
     @staticmethod
     def update_cache() -> None:
@@ -46,6 +53,10 @@ class ImageCacheManager(object):
         all_img = fetch_images()
         for cat in ImageCacheManager.__image_categories:
             ImageCacheManager.__images[cat] = list(filter(lambda _: _.image_category_id == cat.id, all_img))
+
+    @staticmethod
+    def get_image(image_id: int) -> Image:
+        return Image(dbc.select_one(Image.get_query(["id"]), [image_id]))
 
 
 def fetch_image_categories(query_dict: dict = None) -> list[ImageCategory]:
@@ -71,8 +82,8 @@ if __name__ == "__main__":
         print(c, c.parent_category)
     for c, i in ImageCacheManager.get_images().items():
         print(c, i)
-    print("=============================")
-    print(*fetch_image_categories(), sep="\n")
+    # print("=============================")
+    # print(*fetch_image_categories(), sep="\n")
     # print("=============================")
     # print(*fetch_images(), sep="\n")
     # print("=============================")

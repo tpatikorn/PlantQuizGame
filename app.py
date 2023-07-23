@@ -1,6 +1,10 @@
-from flask import Flask, jsonify, send_file
+from flask import Flask, jsonify, send_file, make_response, url_for, render_template, g, request, Blueprint, \
+    send_from_directory
 from flask_cors import CORS
 from waitress import serve
+
+from controllers.quiz_controller import image_treasure_hunt
+from managers.image_manager import ImageCacheManager
 
 
 def create_app():
@@ -32,12 +36,24 @@ def create_app():
 
     @app.route('/index')
     def index():
-        return send_file("templates/index.html")
+        return render_template("index.html")
 
     # sanity check route
     @app.route('/ping', methods=['GET'])
     def ping_pong():
         return jsonify('pong!')
+
+    @app.route('/treasure_hunt', methods=['GET'])
+    def treasure_hunt():
+        ImageCacheManager.update_cache()
+        durian = list(filter(lambda _: _.name == "durian", ImageCacheManager.get_image_categories()))[0]
+        img, ans = image_treasure_hunt(25, 5, durian.id)
+        return render_template("treasure_hunt.html", img=img, ans=ans, dim=5, zip=zip)
+
+    @app.get('/images/<image_id>')
+    def images(image_id):
+        img = ImageCacheManager.get_image(image_id)
+        return send_from_directory(img.dir, img.filename)
 
     return app
 
