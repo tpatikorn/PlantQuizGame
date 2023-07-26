@@ -78,7 +78,6 @@ def create_app():
             category = list(filter(lambda _: _.name == target_type, ImageCacheManager.get_image_categories()))[0]
 
         img, ans = image_quick_draw(n_rounds, n_choices, category.id)
-        print(ans)
         return render_template("quick_draw.html", img=img, ans=ans,
                                n_rounds=n_rounds, target_type=category.name, n_choices=n_choices)
 
