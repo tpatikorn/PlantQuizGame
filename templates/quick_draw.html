@@ -1,14 +1,13 @@
 {% extends 'base.html' %}
 
 {% block header %}
-    <h1>{% block title %}Treasure Hunt: หาใบ {{ target_type }}{% endblock %}</h1>
+    <h1>{% block title %}สิงปืนไวแห่งเมืองจันทบูร: หาใบ {{ target_type }}{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
     <meta id="game_data"
-          data-n_correct="{{ n_correct }}"
-          data-n_col="{{ n_col }}"
-          data-n_pics="{{ n_pics }}"
+          data-n_choices="{{ n_choices }}"
+          data-n_rounds="{{ n_rounds }}"
     >
     <link rel="stylesheet" href="{{ url_for("static", filename="games.css") }}">
     <script type="text/javascript">
@@ -17,6 +16,11 @@
         let timer;
         let start_time;
         $(function () {
+            const img_width = 200;
+            const td_width = img_width + 6;
+            $(".game_td_img").css("width", td_width + "px").css("height", td_width + "px");
+            $(".game_img").css("width", img_width + "px").css("height", img_width + "px");
+
             function get_game_data(key, parser = function (x) {
                 return x
             }) {
@@ -30,13 +34,8 @@
                 return (minutes.toString().padStart(2, '0')) + " นาที " + ((seconds).toFixed(3)).padStart(6, '0') + " วินาที";
             }
 
-            const n_col = get_game_data("n_col", parseInt);
-            const n_row = Math.ceil(get_game_data("n_pics") / n_col);
-            const img_width = 100;
-            const td_width = img_width + 6;
-            $("#treasure_map").css("height", n_row * td_width + "px").css("width", n_col * td_width + "px");
-            $(".game_td_img").css("width", td_width + "px").css("height", td_width + "px");
-            $(".game_img").css("width", img_width + "px").css("height", img_width + "px");
+            const n_rounds = get_game_data("n_rounds", parseInt);
+            const n_choices = get_game_data("n_choices", parseInt);
 
             $('#start').on('click', function () {
                 alert("เริ่ม!")
@@ -44,6 +43,11 @@
                 $(".game_td_img").css("border", "transparent");
                 $(".game_img").show();
                 start_time = Date.now();
+
+                $("#img_bl").attr("src", "images/{{ img[0][0].id }}")
+                    .attr("data-correct", "{% if ans[0][0] %}1{% else %}0{% endif %}");
+                $("#img_br").attr("src", "images/{{ img[0][1].id }}")
+                    .attr("data-correct", "{% if ans[0][1] %}1{% else %}0{% endif %}");
 
                 timer = setInterval(function () {
                     $("#time_lapse").html(time_elapse_text())
@@ -62,20 +66,33 @@
                         $(this).css("border", "2px solid red");
                         scores.incorrect += 1
                     }
-                    $(this).data("selected", true);
-                    $("#correct").html(scores.correct);
-                    $("#incorrect").html(scores.incorrect);
-                    if (scores.correct === $("#game_data").data("n_correct")) {
-                        playing = false;
-                        clearInterval(timer);
-                        $("#time_lapse").html(time_elapse_text());
-                        let modal = new bootstrap.Modal('#result_modal');
-                        modal.show();
-                        $("#modal_body").html(`ในที่สุดก็เลือกครบ!<br>
+                }
+                $(this).data("selected", true);
+                $("#correct").html(scores.correct);
+                $("#incorrect").html(scores.incorrect);
+                if (scores.correct === 1) {
+                    playing = false;
+                    clearInterval(timer);
+                    $("#time_lapse").html(time_elapse_text());
+                    let modal = new bootstrap.Modal('#result_modal');
+                    modal.show();
+                    $("#modal_body").html(`ในที่สุดก็เลือกครบ!<br>
                         ตอบถูก ${scores.correct} ภาพ<br>
                         ตอบผิด ${scores.incorrect} ภาพ<br>
                         ใช้เวลาไป ${time_elapse_text()}`);
-                    }
+                }
+            });
+
+            $(document).on('keydown', function (event) {
+                // Check the keyCode or key for the specific keys you want to target (W, A, S, D)
+                if (event.keyCode === 87 || event.key === 'w') {
+                    $("#img_tm").click();
+                } else if (event.keyCode === 65 || event.key === 'a') {
+                    $("#img_bl").click();
+                } else if (event.keyCode === 83 || event.key === 's') {
+                    $("#img_bm").click();
+                } else if (event.keyCode === 68 || event.key === 'd') {
+                    $("#img_br").click();
                 }
             });
         });
@@ -98,25 +115,31 @@
     </div>
     <div id="quiz" style="text-align: center">
         <input type="button" id="start" value="start" class="btn btn-primary"> <br>
-        <span for="correct" class="badge bg-success">#correct
+        <span class="badge bg-success">#correct
         <span id="correct" class="badge bg-light text-dark">0</span></span>
-        <span for="incorrect" class="badge bg-danger">#incorrect
+        <span class="badge bg-danger">#incorrect
         <span id="incorrect" class="badge bg-light text-dark">0</span></span><br>
         <label for="time_lapse">เวลาที่ใช้: </label>
         <span id="time_lapse">00 นาที 00.000 วินาที</span>
-        <table id="treasure_map" style="margin:0 auto">
-            {% for i in range(0, img|length) %}
-                {% if i % n_col == 0 %}
-                    <tr>
-                {% endif %}
-            <td id="{{ img[i].id }}" class="game_td_img">
-                <img src="images/{{ img[i].id }}" class="game_img" alt="{{ img[i].filename }}"
-                     data-correct="{% if ans[i] %}1{% else %}0{% endif %}" data-selected="false"/>
-            </td>
-            {% if (i + 1) % n_col == 0 or i == img|length %}
-                </tr>
-            {% endif %}
-            {% endfor %}
+        <table id="quick_draw" style="margin:0 auto">
+            <tbody>
+            <tr>
+                <!-- top left             -->
+                <td class="game_td_img"><img id="img_tl" class="game_img" alt="img_tl"/></td>
+                <!-- top mid      = UP    -->
+                <td class="game_td_img"><img id="img_tm" class="game_img" alt="img_tm"/></td>
+                <!-- top right            -->
+                <td class="game_td_img"><img id="img_tr" class="game_img" alt="img_tr"/></td>
+            </tr>
+            <tr>
+                <!-- bottom left  = LEFT  -->
+                <td class="game_td_img"><img id="img_bl" class="game_img" alt="img_bl"/></td>
+                <!-- bottom mid   = DOWN  -->
+                <td class="game_td_img"><img id="img_bm" class="game_img" alt="img_bm"/></td>
+                <!-- bottom right = RIGHT -->
+                <td class="game_td_img"><img id="img_br" class="game_img" alt="img_br"/></td>
+            </tr>
+            </tbody>
         </table>
     </div>
 

@@ -5,7 +5,7 @@ from flask import Flask, jsonify, send_file, make_response, url_for, render_temp
 from flask_cors import CORS
 from waitress import serve
 
-from controllers.quiz_controller import image_treasure_hunt
+from controllers.quiz_controller import image_treasure_hunt, image_quick_draw
 from managers.image_manager import ImageCacheManager
 
 
@@ -62,6 +62,25 @@ def create_app():
         img, ans = image_treasure_hunt(n_pics, n_correct, category.id)
         return render_template("treasure_hunt.html", img=img, ans=ans,
                                n_col=n_col, target_type=category.name, n_correct=n_correct)
+
+    @app.route('/quick_draw', methods=['GET'])
+    def quick_draw():
+        ImageCacheManager.update_cache()
+        n_rounds = int(request.args.get("n_rounds", default=10))
+        n_choices = int(request.args.get("n_choices", default=2))
+        n_choices = max(min(n_choices, 4), 2)
+        target_type = request.args.get("target_type", default="durian")
+        print(target_type)
+
+        if target_type == "random":
+            category = random.sample(ImageCacheManager.get_image_categories(exclude_sub=True), 1)[0]
+        else:
+            category = list(filter(lambda _: _.name == target_type, ImageCacheManager.get_image_categories()))[0]
+
+        img, ans = image_quick_draw(n_rounds, n_choices, category.id)
+        print(ans)
+        return render_template("quick_draw.html", img=img, ans=ans,
+                               n_rounds=n_rounds, target_type=category.name, n_choices=n_choices)
 
     @app.get('/images/<image_id>')
     def images(image_id):

@@ -1,0 +1,7 @@
+.game_img {border:2px solid transparent; padding: 1px; display: none}
+.game_td_img {border: 1px solid grey}
+#treasure_map {table-layout: fixed; width: 100% }
+#treasure_map tr, #treasure_map td { overflow: hidden; }
+
+#quick_draw {table-layout: fixed; width: 100% }
+#quick_draw tr, #treasure_map td { overflow: hidden; }
