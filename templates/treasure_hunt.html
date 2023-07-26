@@ -20,6 +20,21 @@
             function get_game_data(key, parser=function(x) {return x}) {
                 return parser($("#game_data").data(key));
             }
+            // return time elapse [seconds, minutes]
+            function calculate_time_elapse() {
+                const elapse = Date.now() - start_time;
+                return [elapse/1000 % 60, Math.floor(elapse / 60_000)];
+            }
+            function update_timer_display() {
+                const elapse = calculate_time_elapse();
+                let padding0 = "";
+                if(elapse[0] < 10) {
+                    padding0 = "0";
+                }
+                $("#seconds").html(padding0+(elapse[0]).toFixed(3));
+                $("#minutes").html(pad(elapse[1]));
+            }
+
             const n_col = get_game_data("n_col", parseInt);
             const n_row = Math.ceil(get_game_data("n_pics")/n_col);
             const img_width = 100;
@@ -30,19 +45,12 @@
 
             $('#start').on('click', function () {
                 alert("เริ่ม!")
+                $("#start").prop("disabled", true);
                 $(".td_img").css("border","transparent");
                 $(".img").show();
                 start_time = Date.now();
 
-                timer = setInterval(function () {
-                    const elapse = Date.now() - start_time;
-                    let padding0 = "";
-                    if((elapse/1000 % 60) < 10) {
-                        padding0 = "0";
-                    }
-                    $("#seconds").html(padding0+(elapse/1000 % 60).toFixed(3));
-                    $("#minutes").html(pad(Math.floor(elapse / 60_000)));
-                }, 5);
+                timer = setInterval(update_timer_display, 5);
             });
             $('.img').on('click', function () {
                 if (playing && !$(this).data("selected")) {
@@ -59,11 +67,12 @@
                     $("#incorrect").html(scores.incorrect);
                     if (scores.correct === $("#game_data").data("n_correct")) {
                         clearInterval(timer);
-                        const elapse = Date.now() - start_time;
+                        update_timer_display();
+                        const elapse = calculate_time_elapse();
                         alert(`ในที่สุดก็เลือกครบ!
                         ตอบถูก ${scores.correct} ภาพ
                         ตอบผิด ${scores.incorrect} ภาพ
-                        ใช้เวลาไป ${Math.floor(elapse / 60_000)} นาที ${(elapse/1000 % 60).toFixed(3)} วินาที`);
+                        ใช้เวลาไป ${elapse[1]} นาที ${(elapse[0]).toFixed(3)} วินาที`);
                         playing = false;
                     }
                 }

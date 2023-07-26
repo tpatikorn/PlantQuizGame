@@ -50,6 +50,7 @@ def create_app():
         n_pics = int(request.args.get("n_pics", default=25))
         n_correct = int(request.args.get("n_correct", default=5))
         n_col = int(request.args.get("n_col", default=5))
+        n_correct = min(n_correct, n_pics)
 
         durian = list(filter(lambda _: _.name == "durian", ImageCacheManager.get_image_categories()))[0]
         img, ans = image_treasure_hunt(n_pics, n_correct, durian.id)
