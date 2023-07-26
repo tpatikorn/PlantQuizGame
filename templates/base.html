@@ -3,7 +3,7 @@
 <script type="text/javascript" src="../static/jquery-3.7.0.js"></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <nav>
-    <h1>Flaskr</h1>
+    <h1>{% block header %}{% endblock %}</h1>
     <ul>
         {% if g.user %}
             <li><span>{{ g.user.username }}</span>
@@ -15,9 +15,6 @@
     </ul>
 </nav>
 <section class="content">
-    <header>
-        {% block header %}{% endblock %}
-    </header>
     {% for message in get_flashed_messages() %}
         <div class="flash">{{ message }}</div>
     {% endfor %}

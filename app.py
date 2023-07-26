@@ -18,6 +18,7 @@ def create_app():
 
     @app.before_request
     def init(*args):
+        auth.load_logged_in_user()
         pass
 
     @app.teardown_appcontext
@@ -46,9 +47,13 @@ def create_app():
     @app.route('/treasure_hunt', methods=['GET'])
     def treasure_hunt():
         ImageCacheManager.update_cache()
+        n_pics = int(request.args.get("n_pics", default=25))
+        n_correct = int(request.args.get("n_correct", default=5))
+        n_col = int(request.args.get("n_col", default=5))
+
         durian = list(filter(lambda _: _.name == "durian", ImageCacheManager.get_image_categories()))[0]
-        img, ans = image_treasure_hunt(25, 5, durian.id)
-        return render_template("treasure_hunt.html", img=img, ans=ans, dim=5, zip=zip)
+        img, ans = image_treasure_hunt(n_pics, n_correct, durian.id)
+        return render_template("treasure_hunt.html", img=img, ans=ans, n_col=n_col, n_correct=n_correct)
 
     @app.get('/images/<image_id>')
     def images(image_id):

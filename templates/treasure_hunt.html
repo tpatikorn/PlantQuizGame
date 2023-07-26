@@ -5,15 +5,34 @@
 {% endblock %}
 
 {% block content %}
+    <meta id="game_data"
+          data-n_correct="{{ n_correct }}"
+          data-n_col = "{{ n_col }}"
+          data-n_pics = "{{ n_pics }}"
+    >
+    <link rel="stylesheet" href="{{ url_for("static", filename="treasure_hunt.css") }}">
     <script type="text/javascript">
         let scores = {correct: 0, incorrect: 0};
         let playing = true;
         let timer;
+        let start_time;
         $(function () {
+            function get_game_data(key, parser=function(x) {return x}) {
+                return parser($("#game_data").data(key));
+            }
+            const n_col = get_game_data("n_col", parseInt);
+            const n_row = Math.ceil(get_game_data("n_pics")/n_col);
+            const img_width = 100;
+            const td_width = img_width+6;
+            $("#treasure_map").css("height", n_row*td_width+"px").css("width", n_col*td_width+"px");
+            $(".td_img").css("width", td_width+"px").css("height", td_width+"px");
+            $(".img").css("width", img_width+"px").css("height", img_width+"px");
+
             $('#start').on('click', function () {
                 alert("เริ่ม!")
+                $(".td_img").css("border","transparent");
                 $(".img").show();
-                const start_time = Date.now();
+                start_time = Date.now();
 
                 timer = setInterval(function () {
                     const elapse = Date.now() - start_time;
@@ -38,10 +57,14 @@
                     $(this).data("selected", true);
                     $("#correct").html(scores.correct);
                     $("#incorrect").html(scores.incorrect);
-                    if (scores.correct === 5) {
-                        alert("You win! You picked all the correct images!");
-                        playing = false;
+                    if (scores.correct === $("#game_data").data("n_correct")) {
                         clearInterval(timer);
+                        const elapse = Date.now() - start_time;
+                        alert(`ในที่สุดก็เลือกครบ!
+                        ตอบถูก ${scores.correct} ภาพ
+                        ตอบผิด ${scores.incorrect} ภาพ
+                        ใช้เวลาไป ${Math.floor(elapse / 60_000)} นาที ${(elapse/1000 % 60).toFixed(3)} วินาที`);
+                        playing = false;
                     }
                 }
             });
@@ -54,24 +77,24 @@
         });
 
     </script>
-    <input type="button" id="start" value="start">
-    <label for="correct" style="color:green">#correct</label>
-    <span id="correct" style="color:green">0</span>
-    <label for="incorrect" style="color:red">#incorrect</label>
-    <span id="incorrect" style="color:red">0</span>
-    <label for="minutes">เวลาที่ใช้: </label>
-    <span id="minutes"></span>:<span id="seconds"></span>
-    <div id="quiz">
-        <table>
-            {% for i in range(0, dim*dim) %}
-                {% if dim*dim == 25 and i % 5 == 0 %}
+    <div id="quiz" style="text-align: center">
+        <input type="button" id="start" value="start"> <br>
+        <label for="correct" style="color:green">#correct</label>
+        <span id="correct" style="color:green">0</span>
+        <label for="incorrect" style="color:red">#incorrect</label>
+        <span id="incorrect" style="color:red">0</span> <br>
+        <label for="minutes">เวลาที่ใช้: </label>
+        <span id="minutes">00</span>:<span id="seconds">00.000</span>
+        <table id="treasure_map" style="margin:0 auto">
+            {% for i in range(0, img|length) %}
+                {% if i % n_col == 0 %}
                     <tr>
                 {% endif %}
             <td id="{{ img[i].id }}" class="td_img">
                 <img src="images/{{ img[i].id }}" class="img" alt="{{ img[i].filename }}"
                      data-correct="{% if ans[i] %}1{% else %}0{% endif %}" data-selected="false"/>
             </td>
-            {% if dim*dim == 25 and (i + 1) % 5 == 0 %}
+            {% if (i + 1) % n_col == 0 or i == img|length %}
                 </tr>
             {% endif %}
             {% endfor %}

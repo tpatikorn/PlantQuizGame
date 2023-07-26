@@ -11,7 +11,9 @@
         });
     </script>
     <div id="hello">
-        {{ g.user }}
+        {% if g.user %}
+            <li><span>{{ g.user.username }}</span>
+        {% endif %}
     </div>
     <div id="hello2">
         {{ g.user }}
