@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block header %}
-    <h1>{% block title %}Treasure Hunt: หาใบทุเรียน{% endblock %}</h1>
+    <h1>{% block title %}Treasure Hunt: หาใบ {{ target_type }}{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
@@ -27,12 +27,12 @@
             }
             function update_timer_display() {
                 const elapse = calculate_time_elapse();
-                let padding0 = "";
-                if(elapse[0] < 10) {
-                    padding0 = "0";
-                }
-                $("#seconds").html(padding0+(elapse[0]).toFixed(3));
-                $("#minutes").html(pad(elapse[1]));
+            }
+            function time_elapse_text() {
+                const elapse = Date.now() - start_time;
+                const seconds = elapse/1000 % 60;
+                const minutes = Math.floor(elapse / 60_000);
+                return (minutes.toString().padStart(2, '0')) +" นาที "+((seconds).toFixed(3)).padStart(6, '0') +" วินาที";
             }
 
             const n_col = get_game_data("n_col", parseInt);
@@ -45,12 +45,12 @@
 
             $('#start').on('click', function () {
                 alert("เริ่ม!")
-                $("#start").prop("disabled", true);
+                $("#start").prop("disabled", true).removeClass("btn-primary").add("btn-secondary");
                 $(".td_img").css("border","transparent");
                 $(".img").show();
                 start_time = Date.now();
 
-                timer = setInterval(update_timer_display, 5);
+                timer = setInterval(function() {$("#time_lapse").html(time_elapse_text())}, 5);
             });
             $('.img').on('click', function () {
                 if (playing && !$(this).data("selected")) {
@@ -72,7 +72,7 @@
                         alert(`ในที่สุดก็เลือกครบ!
                         ตอบถูก ${scores.correct} ภาพ
                         ตอบผิด ${scores.incorrect} ภาพ
-                        ใช้เวลาไป ${elapse[1]} นาที ${(elapse[0]).toFixed(3)} วินาที`);
+                        ใช้เวลาไป ${time_elapse_text()}`);
                         playing = false;
                     }
                 }
@@ -87,13 +87,13 @@
 
     </script>
     <div id="quiz" style="text-align: center">
-        <input type="button" id="start" value="start"> <br>
-        <label for="correct" style="color:green">#correct</label>
-        <span id="correct" style="color:green">0</span>
-        <label for="incorrect" style="color:red">#incorrect</label>
-        <span id="incorrect" style="color:red">0</span> <br>
-        <label for="minutes">เวลาที่ใช้: </label>
-        <span id="minutes">00</span>:<span id="seconds">00.000</span>
+        <input type="button" id="start" value="start" class="btn btn-primary"> <br>
+        <span for="correct" class="badge bg-success">#correct
+        <span id="correct" class="badge bg-light text-dark">0</span></span>
+        <span for="incorrect" class="badge bg-danger">#incorrect
+        <span id="incorrect" class="badge bg-light text-dark">0</span></span><br>
+        <label for="time_lapse">เวลาที่ใช้: </label>
+        <span id="time_lapse">00 นาที 00.000 วินาที</span>
         <table id="treasure_map" style="margin:0 auto">
             {% for i in range(0, img|length) %}
                 {% if i % n_col == 0 %}

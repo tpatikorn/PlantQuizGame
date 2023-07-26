@@ -1,3 +1,5 @@
+import random
+
 from flask import Flask, jsonify, send_file, make_response, url_for, render_template, g, request, Blueprint, \
     send_from_directory
 from flask_cors import CORS
@@ -50,11 +52,16 @@ def create_app():
         n_pics = int(request.args.get("n_pics", default=25))
         n_correct = int(request.args.get("n_correct", default=5))
         n_col = int(request.args.get("n_col", default=5))
+        target_type = request.args.get("target_type", default="durian")
         n_correct = min(n_correct, n_pics)
 
-        durian = list(filter(lambda _: _.name == "durian", ImageCacheManager.get_image_categories()))[0]
-        img, ans = image_treasure_hunt(n_pics, n_correct, durian.id)
-        return render_template("treasure_hunt.html", img=img, ans=ans, n_col=n_col, n_correct=n_correct)
+        if target_type == "random":
+            category = random.sample(ImageCacheManager.get_image_categories(exclude_sub=True), 1)[0]
+        else:
+            category = list(filter(lambda _: _.name == target_type, ImageCacheManager.get_image_categories()))[0]
+        img, ans = image_treasure_hunt(n_pics, n_correct, category.id)
+        return render_template("treasure_hunt.html", img=img, ans=ans,
+                               n_col=n_col, target_type=category.name, n_correct=n_correct)
 
     @app.get('/images/<image_id>')
     def images(image_id):
