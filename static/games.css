@@ -1,7 +1,47 @@
-.game_img {border:2px solid transparent; padding: 1px; display: none}
-.game_td_img {border: 1px solid grey}
-#treasure_map {table-layout: fixed; width: 100% }
-#treasure_map tr, #treasure_map td { overflow: hidden; }
+.game_img {
+    border: 2px solid transparent;
+    padding: 1px;
+    display: none
+}
 
-#quick_draw {table-layout: fixed; width: 100% }
-#quick_draw tr, #treasure_map td { overflow: hidden; }
+.game_td_img {
+    border: 1px solid grey
+}
+
+.game_div_img {
+    float: left;
+    border: 1px solid grey
+}
+
+.game_column {
+    float: left;
+    width: 33.33%;
+    height: 0;
+    padding: 10px 10px 20%;
+}
+
+/* Clear floats after the columns */
+.game_row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+
+#treasure_map {
+    table-layout: fixed;
+    width: 100%
+}
+
+#treasure_map tr, #treasure_map td {
+    overflow: hidden;
+}
+
+#quick_draw {
+    table-layout: fixed;
+    width: 100%
+}
+
+#quick_draw tr, #treasure_map td {
+    overflow: hidden;
+}

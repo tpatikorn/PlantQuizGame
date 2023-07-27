@@ -37,6 +37,14 @@
             const n_rounds = get_game_data("n_rounds", parseInt);
             const n_choices = get_game_data("n_choices", parseInt);
 
+            $.fn.preload = function () {
+                this.each(function () {
+                    $('<img alt="" src=""/>')[0].src = this;
+                });
+            }
+
+            $({{ all_img_src|safe }}).preload();
+
             $('#start').on('click', function () {
                 alert("เริ่ม!")
                 $("#start").prop("disabled", true).removeClass("btn-primary").add("btn-secondary");
@@ -121,26 +129,24 @@
         <span id="incorrect" class="badge bg-light text-dark">0</span></span><br>
         <label for="time_lapse">เวลาที่ใช้: </label>
         <span id="time_lapse">00 นาที 00.000 วินาที</span>
-        <table id="quick_draw" style="margin:0 auto">
-            <tbody>
-            <tr>
+        <div id="quick_draw" style="margin:0 auto">
+            <div class="game_row">
                 <!-- top left             -->
-                <td class="game_td_img"><img id="img_tl" class="game_img" alt="img_tl"/></td>
+                <div class="game_column"><img id="img_tl" class="game_img" alt="img_tl"/></div>
                 <!-- top mid      = UP    -->
-                <td class="game_td_img"><img id="img_tm" class="game_img" alt="img_tm"/></td>
+                <div class="game_column"><img id="img_tm" class="game_img" alt="img_tm"/></div>
                 <!-- top right            -->
-                <td class="game_td_img"><img id="img_tr" class="game_img" alt="img_tr"/></td>
-            </tr>
-            <tr>
+                <div class="game_column"><img id="img_tr" class="game_img" alt="img_tr"/></div>
+            </div>
+            <div class="game_row">
                 <!-- bottom left  = LEFT  -->
-                <td class="game_td_img"><img id="img_bl" class="game_img" alt="img_bl"/></td>
+                <div class="game_column"><img id="img_bl" class="game_img" alt="img_bl"/></div>
                 <!-- bottom mid   = DOWN  -->
-                <td class="game_td_img"><img id="img_bm" class="game_img" alt="img_bm"/></td>
+                <div class="game_column"><img id="img_bm" class="game_img" alt="img_bm"/></div>
                 <!-- bottom right = RIGHT -->
-                <td class="game_td_img"><img id="img_br" class="game_img" alt="img_br"/></td>
-            </tr>
-            </tbody>
-        </table>
+                <div class="game_column"><img id="img_br" class="game_img" alt="img_br"/></div>
+            </div>
+        </div>
     </div>
 
 {% endblock %}
