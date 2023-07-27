@@ -34,7 +34,7 @@
                     $(choice_location[i])
                         .css("border-color", "transparent")
                         .attr("src", "images/" + this_round_img["id"])
-                        .attr("data-correct", this_round_img["image_category_id"] === treasure_cat_id ? "1" : "0")
+                        .data("correct", this_round_img["image_category_id"] === treasure_cat_id ? 1 : 0)
                         .data("selected", false);
                 }
             }
@@ -88,14 +88,24 @@
 
             $(document).on('keydown', function (event) {
                 // Check the keyCode or key for the specific keys you want to target (W, A, S, D)
-                if (event.keyCode === 87 || event.key === 'w') {
+                if (event.keyCode === 80 || event.key === 'q') {
+                    $("#img_tl").click();
+                } else if (event.keyCode === 87 || event.key === 'w') {
                     $("#img_tm").click();
+                } else if (event.keyCode === 69 || event.key === 'e') {
+                    $("#img_tr").click();
                 } else if (event.keyCode === 65 || event.key === 'a') {
                     $("#img_ml").click();
                 } else if (event.keyCode === 83 || event.key === 's') {
                     $("#img_mm").click();
                 } else if (event.keyCode === 68 || event.key === 'd') {
                     $("#img_mr").click();
+                } else if (event.keyCode === 90 || event.key === 'z') {
+                    $("#img_bl").click();
+                } else if (event.keyCode === 88 || event.key === 'x') {
+                    $("#img_bm").click();
+                } else if (event.keyCode === 67 || event.key === 'c') {
+                    $("#img_br").click();
                 }
             });
         });
