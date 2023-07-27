@@ -57,9 +57,9 @@ def image_quick_draw(n_rounds=10, n_choices=2, main_category_id=-1):
                                     "order by random() limit %s;", [treasure_cat_id, n_rounds * (n_choices - 1)])))
 
     all_img = [[t] + [other.pop() for _ in range(n_choices - 1)] for t in treasures]
-    shuffle(all_img)
-    return all_img, list(map(lambda round_: [img_.image_category_id == treasure_cat_id for img_ in round_],
-                             all_img))
+    [shuffle(_) for _ in all_img] # shuffle choices of each problem
+    shuffle(all_img) # shuffle problems
+    return all_img, treasure_cat_id
 
 
 if __name__ == "__main__":

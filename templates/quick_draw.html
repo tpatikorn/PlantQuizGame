@@ -8,42 +8,36 @@
     <meta id="game_data"
           data-n_choices="{{ n_choices }}"
           data-n_rounds="{{ n_rounds }}"
+          data-treasure_cat_id="{{ treasure_cat_id }}"
     >
     <link rel="stylesheet" href="{{ url_for("static", filename="games.css") }}">
+    <script type="text/javascript" src="{{ url_for("static", filename="util.js") }}"></script>
     <script type="text/javascript">
         let scores = {correct: 0, incorrect: 0};
         let playing = true;
+        let current_round = 0;
         let timer;
         let start_time;
         $(function () {
-            const img_width = 200;
-            const td_width = img_width + 6;
-            $(".game_td_img").css("width", td_width + "px").css("height", td_width + "px");
-            $(".game_img").css("width", img_width + "px").css("height", img_width + "px");
-
-            function get_game_data(key, parser = function (x) {
-                return x
-            }) {
-                return parser($("#game_data").data(key));
-            }
-
-            function time_elapse_text() {
-                const elapse = Date.now() - start_time;
-                const seconds = elapse / 1000 % 60;
-                const minutes = Math.floor(elapse / 60_000);
-                return (minutes.toString().padStart(2, '0')) + " นาที " + ((seconds).toFixed(3)).padStart(6, '0') + " วินาที";
-            }
-
             const n_rounds = get_game_data("n_rounds", parseInt);
             const n_choices = get_game_data("n_choices", parseInt);
-
-            $.fn.preload = function () {
-                this.each(function () {
-                    $('<img alt="" src=""/>')[0].src = this;
-                });
-            }
+            const treasure_cat_id = get_game_data("treasure_cat_id");
+            const choice_location = ["#img_ml", "#img_mr", "#img_tm", "#img_mm", "#img_tl", "#img_tr", "#img_bm", "#img_bl", "#img_br"];
 
             $({{ all_img_src|safe }}).preload();
+            const all_img = JSON.parse('{{ img|safe }}');
+
+            function new_round(round_id) {
+                for (let i = 0; i < n_choices; i++) {
+                    const this_round_img = all_img[round_id][i];
+                    console.log(this_round_img);
+                    $(choice_location[i])
+                        .css("border-color", "transparent")
+                        .attr("src", "images/" + this_round_img["id"])
+                        .attr("data-correct", this_round_img["image_category_id"] === treasure_cat_id ? "1" : "0")
+                        .data("selected", false);
+                }
+            }
 
             $('#start').on('click', function () {
                 alert("เริ่ม!")
@@ -51,11 +45,7 @@
                 $(".game_td_img").css("border", "transparent");
                 $(".game_img").show();
                 start_time = Date.now();
-
-                $("#img_bl").attr("src", "images/{{ img[0][0].id }}")
-                    .attr("data-correct", "{% if ans[0][0] %}1{% else %}0{% endif %}");
-                $("#img_br").attr("src", "images/{{ img[0][1].id }}")
-                    .attr("data-correct", "{% if ans[0][1] %}1{% else %}0{% endif %}");
+                new_round(0);
 
                 timer = setInterval(function () {
                     $("#time_lapse").html(time_elapse_text())
@@ -66,19 +56,24 @@
                     return;
                 }
                 if (!$(this).data("selected")) {
+                    $(this).data("selected", true);
                     const correctness = $(this).data("correct");
                     if (correctness === 1) {
-                        $(this).css("border", "2px solid green");
+                        $(this).css("border-color", "green");
                         scores.correct += 1
+                        current_round++;
+                        if (current_round < n_rounds) {
+                            new_round(current_round);
+                        }
                     } else {
-                        $(this).css("border", "2px solid red");
+                        $(this).css("border-color", "red");
                         scores.incorrect += 1
                     }
+
                 }
-                $(this).data("selected", true);
                 $("#correct").html(scores.correct);
                 $("#incorrect").html(scores.incorrect);
-                if (scores.correct === 1) {
+                if (current_round >= n_rounds) {
                     playing = false;
                     clearInterval(timer);
                     $("#time_lapse").html(time_elapse_text());
@@ -96,11 +91,11 @@
                 if (event.keyCode === 87 || event.key === 'w') {
                     $("#img_tm").click();
                 } else if (event.keyCode === 65 || event.key === 'a') {
-                    $("#img_bl").click();
+                    $("#img_ml").click();
                 } else if (event.keyCode === 83 || event.key === 's') {
-                    $("#img_bm").click();
+                    $("#img_mm").click();
                 } else if (event.keyCode === 68 || event.key === 'd') {
-                    $("#img_br").click();
+                    $("#img_mr").click();
                 }
             });
         });
@@ -129,22 +124,48 @@
         <span id="incorrect" class="badge bg-light text-dark">0</span></span><br>
         <label for="time_lapse">เวลาที่ใช้: </label>
         <span id="time_lapse">00 นาที 00.000 วินาที</span>
-        <div id="quick_draw" style="margin:0 auto">
+        <div id="quick_draw">
             <div class="game_row">
                 <!-- top left             -->
-                <div class="game_column"><img id="img_tl" class="game_img" alt="img_tl"/></div>
+                <div class="game_column">
+                    <img id="img_tl" class="game_img" alt="img_tl" src="{{ url_for('static', filename='blank.png') }}"/>
+                </div>
                 <!-- top mid      = UP    -->
-                <div class="game_column"><img id="img_tm" class="game_img" alt="img_tm"/></div>
+                <div class="game_column">
+                    <img id="img_tm" class="game_img" alt="img_tm" src="{{ url_for('static', filename='blank.png') }}"/>
+                </div>
                 <!-- top right            -->
-                <div class="game_column"><img id="img_tr" class="game_img" alt="img_tr"/></div>
+                <div class="game_column">
+                    <img id="img_tr" class="game_img" alt="img_tr" src="{{ url_for('static', filename='blank.png') }}"/>
+                </div>
             </div>
             <div class="game_row">
                 <!-- bottom left  = LEFT  -->
-                <div class="game_column"><img id="img_bl" class="game_img" alt="img_bl"/></div>
+                <div class="game_column">
+                    <img id="img_ml" class="game_img" alt="img_ml" src="{{ url_for('static', filename='blank.png') }}"/>
+                </div>
                 <!-- bottom mid   = DOWN  -->
-                <div class="game_column"><img id="img_bm" class="game_img" alt="img_bm"/></div>
+                <div class="game_column">
+                    <img id="img_mm" class="game_img" alt="img_mm" src="{{ url_for('static', filename='blank.png') }}"/>
+                </div>
                 <!-- bottom right = RIGHT -->
-                <div class="game_column"><img id="img_br" class="game_img" alt="img_br"/></div>
+                <div class="game_column">
+                    <img id="img_mr" class="game_img" alt="img_mr" src="{{ url_for('static', filename='blank.png') }}"/>
+                </div>
+            </div>
+            <div class="game_row">
+                <!-- bottom left  = LEFT  -->
+                <div class="game_column">
+                    <img id="img_bl" class="game_img" alt="img_bl" src="{{ url_for('static', filename='blank.png') }}"/>
+                </div>
+                <!-- bottom mid   = DOWN  -->
+                <div class="game_column">
+                    <img id="img_bm" class="game_img" alt="img_bm" src="{{ url_for('static', filename='blank.png') }}"/>
+                </div>
+                <!-- bottom right = RIGHT -->
+                <div class="game_column">
+                    <img id="img_br" class="game_img" alt="img_br" src="{{ url_for('static', filename='blank.png') }}"/>
+                </div>
             </div>
         </div>
     </div>

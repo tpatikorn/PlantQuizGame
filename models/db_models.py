@@ -1,11 +1,12 @@
 from models.abstract_model import AbstractDatabaseObject
 
-
+# TODO create another class for Image but for view
 class Image(AbstractDatabaseObject):
     id, filename, image_category_id, dir, active = None, None, None, None, None
     image_category = None
     table_name = "images"
     field_list = ["id", "filename", "image_category_id", "dir", "active"]
+    json_field_list = ["id", "image_category_id", "active"]
 
 
 class ImageCategory(AbstractDatabaseObject):

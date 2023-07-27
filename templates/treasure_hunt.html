@@ -11,24 +11,15 @@
           data-n_pics="{{ n_pics }}"
     >
     <link rel="stylesheet" href="{{ url_for("static", filename="games.css") }}">
+    <script type="text/javascript" src="{{ url_for("static", filename="util.js") }}"></script>
+
     <script type="text/javascript">
         let scores = {correct: 0, incorrect: 0};
         let playing = true;
         let timer;
         let start_time;
         $(function () {
-            function get_game_data(key, parser = function (x) {
-                return x
-            }) {
-                return parser($("#game_data").data(key));
-            }
-
-            function time_elapse_text() {
-                const elapse = Date.now() - start_time;
-                const seconds = elapse / 1000 % 60;
-                const minutes = Math.floor(elapse / 60_000);
-                return (minutes.toString().padStart(2, '0')) + " นาที " + ((seconds).toFixed(3)).padStart(6, '0') + " วินาที";
-            }
+            $({{ all_img_src|safe }}).preload();
 
             const n_col = get_game_data("n_col", parseInt);
             const n_row = Math.ceil(get_game_data("n_pics") / n_col);
@@ -36,7 +27,7 @@
             const td_width = img_width + 6;
             $("#treasure_map").css("height", n_row * td_width + "px").css("width", n_col * td_width + "px");
             $(".game_td_img").css("width", td_width + "px").css("height", td_width + "px");
-            $(".game_img").css("width", img_width + "px").css("height", img_width + "px");
+            $(".game_img").css("width", img_width + "px").css("height", img_width + "px").hide();
 
             $('#start').on('click', function () {
                 alert("เริ่ม!")

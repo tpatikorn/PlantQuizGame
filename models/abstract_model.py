@@ -1,5 +1,5 @@
 class AbstractDatabaseObject:
-    table_name, field_list = None, None
+    table_name, field_list, json_field_list = None, None, None
 
     """
     constructor for any DatabaseObject
@@ -21,8 +21,13 @@ class AbstractDatabaseObject:
         return self.__repr__()
 
     def __repr__(self):
-        return f"Object from table: {self.table_name} | " \
-            + " | ".join([f"{f}: {getattr(self, f)}" for f in self.field_list])
+        if self.json_field_list is None:
+            return f'{{"obj_type": "{self.table_name}",' \
+                + ','.join([f'"{f}": "{getattr(self, f)}"' for f in self.field_list])+'}'
+        else:
+            return f'{{"obj_type": "{self.table_name}",' \
+                + ','.join([f'"{f}": "{getattr(self, f)}"' for f in self.json_field_list])+ '}'
+
 
     @classmethod
     def get_query(cls, field_sublist: list[str]) -> str:

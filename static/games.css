@@ -1,11 +1,12 @@
 .game_img {
-    border: 2px solid transparent;
+    border: 2px solid yellow;
     padding: 1px;
-    display: none
+    width: 100%;
+    aspect-ratio: auto;
 }
 
 .game_td_img {
-    border: 1px solid grey
+    border: 1px solid grey;
 }
 
 .game_div_img {
@@ -16,8 +17,7 @@
 .game_column {
     float: left;
     width: 33.33%;
-    height: 0;
-    padding: 10px 10px 20%;
+    padding: 10px;
 }
 
 /* Clear floats after the columns */
@@ -27,6 +27,11 @@
     clear: both;
 }
 
+.background {
+    position: relative;
+    width: 100%;
+    display: inline;
+}
 
 #treasure_map {
     table-layout: fixed;
@@ -38,10 +43,13 @@
 }
 
 #quick_draw {
-    table-layout: fixed;
-    width: 100%
-}
-
-#quick_draw tr, #treasure_map td {
-    overflow: hidden;
+    margin:0 auto;
+    width: 100%;
+    max-width: 500px;
+    height: 100%;
+    background-image: url(/static/gunner.png);
+    background-repeat: no-repeat;
+    background-position: top;
+    background-size: 100%;
+    padding: 10px;
 }

@@ -60,7 +60,8 @@ def create_app():
         else:
             category = list(filter(lambda _: _.name == target_type, ImageCacheManager.get_image_categories()))[0]
         img, ans = image_treasure_hunt(n_pics, n_correct, category.id)
-        return render_template("treasure_hunt.html", img=img, ans=ans,
+        all_img_src = [f"images/{i.id}" for i in img]
+        return render_template("treasure_hunt.html", img=img, ans=ans, all_img_src=all_img_src,
                                n_col=n_col, target_type=category.name, n_correct=n_correct)
 
     @app.route('/quick_draw', methods=['GET'])
@@ -68,7 +69,7 @@ def create_app():
         ImageCacheManager.update_cache()
         n_rounds = int(request.args.get("n_rounds", default=10))
         n_choices = int(request.args.get("n_choices", default=2))
-        n_choices = max(min(n_choices, 4), 2)
+        n_choices = max(min(n_choices, 9), 2)
         target_type = request.args.get("target_type", default="durian")
         print(target_type)
 
@@ -77,9 +78,9 @@ def create_app():
         else:
             category = list(filter(lambda _: _.name == target_type, ImageCacheManager.get_image_categories()))[0]
 
-        img, ans = image_quick_draw(n_rounds, n_choices, category.id)
+        img, treasure_cat_id = image_quick_draw(n_rounds, n_choices, category.id)
         all_img_src = [f"images/{i.id}" for i_row in img for i in i_row]
-        return render_template("quick_draw.html", img=img, ans=ans, all_img_src=all_img_src,
+        return render_template("quick_draw.html", img=img, treasure_cat_id=treasure_cat_id, all_img_src=all_img_src,
                                n_rounds=n_rounds, target_type=category.name, n_choices=n_choices)
 
     @app.get('/images/<image_id>')
