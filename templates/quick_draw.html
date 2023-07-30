@@ -126,7 +126,7 @@
             </div>
         </div>
     </div>
-    <div id="quiz" style="text-align: center">
+    <div id="quiz" class="main_game">
         <input type="button" id="start" value="start" class="btn btn-primary"> <br>
         <span class="badge bg-success">#correct
         <span id="correct" class="badge bg-light text-dark">0</span></span>
@@ -134,46 +134,46 @@
         <span id="incorrect" class="badge bg-light text-dark">0</span></span><br>
         <label for="time_lapse">เวลาที่ใช้: </label>
         <span id="time_lapse">00 นาที 00.000 วินาที</span>
-        <div id="quick_draw">
+        <div id="quick_draw" class="main_game">
             <div class="game_row">
                 <!-- top left             -->
-                <div class="game_column">
+                <div class="gunner_column">
                     <img id="img_tl" class="game_img" alt="img_tl" src="{{ url_for('static', filename='blank.png') }}"/>
                 </div>
                 <!-- top mid      = UP    -->
-                <div class="game_column">
+                <div class="gunner_column">
                     <img id="img_tm" class="game_img" alt="img_tm" src="{{ url_for('static', filename='blank.png') }}"/>
                 </div>
                 <!-- top right            -->
-                <div class="game_column">
+                <div class="gunner_column">
                     <img id="img_tr" class="game_img" alt="img_tr" src="{{ url_for('static', filename='blank.png') }}"/>
                 </div>
             </div>
             <div class="game_row">
                 <!-- bottom left  = LEFT  -->
-                <div class="game_column">
+                <div class="gunner_column">
                     <img id="img_ml" class="game_img" alt="img_ml" src="{{ url_for('static', filename='blank.png') }}"/>
                 </div>
                 <!-- bottom mid   = DOWN  -->
-                <div class="game_column">
+                <div class="gunner_column">
                     <img id="img_mm" class="game_img" alt="img_mm" src="{{ url_for('static', filename='blank.png') }}"/>
                 </div>
                 <!-- bottom right = RIGHT -->
-                <div class="game_column">
+                <div class="gunner_column">
                     <img id="img_mr" class="game_img" alt="img_mr" src="{{ url_for('static', filename='blank.png') }}"/>
                 </div>
             </div>
             <div class="game_row">
                 <!-- bottom left  = LEFT  -->
-                <div class="game_column">
+                <div class="gunner_column">
                     <img id="img_bl" class="game_img" alt="img_bl" src="{{ url_for('static', filename='blank.png') }}"/>
                 </div>
                 <!-- bottom mid   = DOWN  -->
-                <div class="game_column">
+                <div class="gunner_column">
                     <img id="img_bm" class="game_img" alt="img_bm" src="{{ url_for('static', filename='blank.png') }}"/>
                 </div>
                 <!-- bottom right = RIGHT -->
-                <div class="game_column">
+                <div class="gunner_column">
                     <img id="img_br" class="game_img" alt="img_br" src="{{ url_for('static', filename='blank.png') }}"/>
                 </div>
             </div>

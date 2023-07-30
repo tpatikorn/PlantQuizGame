@@ -22,11 +22,11 @@
             $({{ all_img_src|safe }}).preload();
 
             const n_col = get_game_data("n_col", parseInt);
-            const n_row = Math.ceil(get_game_data("n_pics") / n_col);
+            const n_row = Math.ceil(get_game_data("n_pics", parseInt) / n_col);
             const img_width = 100;
             const td_width = img_width + 6;
             $("#treasure_map").css("height", n_row * td_width + "px").css("width", n_col * td_width + "px");
-            $(".game_td_img").css("width", td_width + "px").css("height", td_width + "px");
+            $(".game_column").css("width", td_width + "px").css("height", td_width + "px");
             $(".game_img").css("width", img_width + "px").css("height", img_width + "px").hide();
 
             $('#start').on('click', function () {
@@ -87,7 +87,8 @@
             </div>
         </div>
     </div>
-    <div id="quiz" style="text-align: center">
+
+    <div id="quiz" class="main_game">
         <input type="button" id="start" value="start" class="btn btn-primary"> <br>
         <span for="correct" class="badge bg-success">#correct
         <span id="correct" class="badge bg-light text-dark">0</span></span>
@@ -95,20 +96,20 @@
         <span id="incorrect" class="badge bg-light text-dark">0</span></span><br>
         <label for="time_lapse">เวลาที่ใช้: </label>
         <span id="time_lapse">00 นาที 00.000 วินาที</span>
-        <table id="treasure_map" style="margin:0 auto">
+        <div id="treasure_map" class="main_game">
             {% for i in range(0, img|length) %}
                 {% if i % n_col == 0 %}
-                    <tr>
+                    <div class="game_row">
                 {% endif %}
-            <td id="{{ img[i].id }}" class="game_td_img">
+            <row id="{{ img[i].id }}" class="game_column">
                 <img src="images/{{ img[i].id }}" class="game_img" alt="{{ img[i].filename }}"
                      data-correct="{% if ans[i] %}1{% else %}0{% endif %}" data-selected="false"/>
-            </td>
+            </row>
             {% if (i + 1) % n_col == 0 or i == img|length %}
-                </tr>
+                </div>
             {% endif %}
             {% endfor %}
-        </table>
+        </div>
     </div>
 
 {% endblock %}

@@ -1,3 +1,8 @@
+.main_game {
+    text-align: center;
+    margin: auto;
+}
+
 .game_img {
     border: 2px solid yellow;
     padding: 1px;
@@ -5,16 +10,12 @@
     aspect-ratio: auto;
 }
 
-.game_td_img {
-    border: 1px solid grey;
-}
-
-.game_div_img {
-    float: left;
-    border: 1px solid grey
-}
-
 .game_column {
+    float: left;
+    min-width: 100px;
+}
+
+.gunner_column {
     float: left;
     width: 33.33%;
     padding: 10px;
@@ -38,12 +39,8 @@
     width: 100%
 }
 
-#treasure_map tr, #treasure_map td {
-    overflow: hidden;
-}
-
 #quick_draw {
-    margin:0 auto;
+    margin: 0 auto;
     width: 100%;
     max-width: 500px;
     height: 100%;
