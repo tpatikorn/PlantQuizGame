@@ -38,6 +38,7 @@ def sync_image_folder_with_db(path: str, folder_level_tags: list[int] = None) ->
 # return list of (path_to_folder, level, list of files) of all sub-folders
 def __traverse_path(path: str, folder_level_tags: list[int], dbc: DBConnector,
                     current_tags: list[int], level: int) -> list[tuple[str, int, list[str]]]:
+    print(path, level, current_tags)
     items = os.listdir(path)
     sub_folders = list(filter(lambda _: os.path.isdir(os.path.join(path, _)), items))
     items = list(filter(lambda _: _ not in sub_folders, items))
@@ -68,7 +69,6 @@ def __traverse_path(path: str, folder_level_tags: list[int], dbc: DBConnector,
         dbc.commit()
 
     for sf in sub_folders:
-        print(sf, level, current_tags)
         result.append(__traverse_path(path=os.path.join(path, sf), dbc=dbc, folder_level_tags=folder_level_tags,
                                       current_tags=current_tags, level=level + 1))
     return result
