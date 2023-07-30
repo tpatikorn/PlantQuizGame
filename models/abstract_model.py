@@ -23,11 +23,10 @@ class AbstractDatabaseObject:
     def __repr__(self):
         if self.json_field_list is None:
             return f'{{"obj_type": "{self.table_name}",' \
-                + ','.join([f'"{f}": "{getattr(self, f)}"' for f in self.field_list])+'}'
+                + ','.join([f'"{f}": "{getattr(self, f)}"' for f in self.field_list]) + '}'
         else:
             return f'{{"obj_type": "{self.table_name}",' \
-                + ','.join([f'"{f}": "{getattr(self, f)}"' for f in self.json_field_list])+ '}'
-
+                + ','.join([f'"{f}": "{getattr(self, f)}"' for f in self.json_field_list]) + '}'
 
     @classmethod
     def get_query(cls, field_sublist: list[str]) -> str:
