@@ -21,7 +21,7 @@
         $(function () {
             const n_rounds = get_game_data("n_rounds", parseInt);
             const n_choices = get_game_data("n_choices", parseInt);
-            const treasure_cat_id = get_game_data("treasure_cat_id");
+            const treasure_cat_id = get_game_data("treasure_cat_id", parseInt);
             const choice_location = ["#img_ml", "#img_mr", "#img_tm", "#img_mm", "#img_tl", "#img_tr", "#img_bm", "#img_bl", "#img_br"];
 
             $({{ all_img_src|safe }}).preload();
@@ -34,7 +34,7 @@
                     $(choice_location[i])
                         .css("border-color", "transparent")
                         .attr("src", "images/" + this_round_img["id"])
-                        .data("correct", this_round_img["tag_id"] === treasure_cat_id ? 1 : 0)
+                        .data("correct", this_round_img["tag_id"].includes(treasure_cat_id) ? 1 : 0)
                         .data("selected", false);
                 }
             }

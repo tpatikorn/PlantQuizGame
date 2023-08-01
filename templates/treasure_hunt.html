@@ -103,7 +103,7 @@
                 {% endif %}
             <row id="{{ img[i].id }}" class="game_column">
                 <img src="images/{{ img[i].id }}" class="game_img" alt="{{ img[i].filename }}"
-                     data-correct="{% if ans[i] %}1{% else %}0{% endif %}" data-selected="false"/>
+                     data-correct="{% if treasure_cat_id in img[i].tag_id %}1{% else %}0{% endif %}" data-selected="false"/>
             </row>
             {% if (i + 1) % n_col == 0 or i == img|length %}
                 </div>

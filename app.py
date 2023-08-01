@@ -58,9 +58,9 @@ def create_app():
             category = random.sample(fetch_image_tags(), 1)[0]
         else:
             category = list(filter(lambda _: _.name == target_type, fetch_image_tags()))[0]
-        img, ans = image_treasure_hunt(n_pics, n_correct, category.id)
+        img, treasure_cat_id = image_treasure_hunt(n_pics, n_correct, category.id)
         all_img_src = [f"images/{i.id}" for i in img]
-        return render_template("treasure_hunt.html", img=img, ans=ans, all_img_src=all_img_src,
+        return render_template("treasure_hunt.html", img=img, treasure_cat_id=treasure_cat_id, all_img_src=all_img_src,
                                n_col=n_col, target_type=category.name, n_correct=n_correct)
 
     @app.route('/quick_draw', methods=['GET'])
