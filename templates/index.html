@@ -12,7 +12,7 @@
                 $.each($("#form_treasure_hunt").serializeArray(), function (i, field) {
                     params.set(field.name, field.value);
                 });
-                if (params.get("n_pics") <= params.get("n_correct")) {
+                if (parseInt(params.get("n_pics")) <= parseInt(params.get("n_correct"))) {
                     alert("จำนวนภาพที่ถูกต้อง ต้องมากกว่า จำนวนภาพทั้งหมด")
                     return false;
                 } else {
@@ -28,8 +28,37 @@
                 window.location.href = "/quick_draw?" + params.toString();
                 return false;
             });
+            $("#treasure_hunt_info").click(function () {
+                $('#result_modal').find('.modal-header > h5').text("ตัวอย่าง Treasure Hunt").end();
+                let modal = new bootstrap.Modal('#result_modal');
+                modal.show();
+                $("#modal_body").html(`<img src="{{ url_for("static", filename="screenshots/treasure_hunt.png") }}"
+                style="max-width:90%" alt="">`);
+            });
+            $("#quick_draw_info").click(function () {
+                $('#result_modal').find('.modal-header > h5').text("ตัวอย่าง Quick Draw").end();
+                let modal = new bootstrap.Modal('#result_modal');
+                modal.show();
+                $("#modal_body").html(`<img src="{{ url_for("static", filename="screenshots/quick_draw.png") }}"
+                style="max-width:90%" alt="">`);
+            });
         });
     </script>
+    <div id="result_modal" class="modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Modal title</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="modal_body" style="text-align: center">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <ul class="nav nav-tabs" id="myTab" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="treasure_hunt_tab" data-bs-toggle="tab" data-bs-target="#treasure_hunt"
@@ -71,7 +100,11 @@
                     <input name="n_cols" type="number" class="form-control" value="5" min="1" max="10"
                            aria-label="จำนวนภาพต่อแถว" aria-describedby="n_cols_label">
                 </div>
-                <button type="submit" class="btn btn-primary">Submit</button>
+                <button id="treasure_hunt_info" type="button" class="btn btn-primary" style="margin:1em"><i class="bi bi-info-circle"></i> ตัวอย่าง
+                <button type="submit" class="btn btn-success" style="margin:1em"><i class="bi bi-play-circle"></i> Play!</button>
+                </button>
+
+
             </form>
         </div>
         <div class="tab-pane fade" id="quick_draw" role="tabpanel" aria-labelledby="quick_draw_tab">
@@ -97,7 +130,8 @@
                     <input name="n_choices" type="number" class="form-control" value="2" min="2" max="9"
                            aria-label="จำนวนตัวเลือก" aria-describedby="n_col_label">
                 </div>
-                <button type="submit" class="btn btn-primary">Submit</button>
+                <button id="quick_draw_info" type="button" class="btn btn-primary" style="margin:1em"><i class="bi bi-info-circle"></i> ตัวอย่าง
+                <button type="submit" class="btn btn-success" style="margin:1em"><i class="bi bi-play-circle"></i> Play!</button>
             </form>
         </div>
     </div>

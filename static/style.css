@@ -77,8 +77,9 @@ nav ul li a, nav ul li span, header .action {
 }
 
 #myTabContent {
-    width: 50%;
+    width: 40%;
     min-width: 480px;
+    height: 500px;
     text-align: center;
     margin: auto;
     padding: 1em;
