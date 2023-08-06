@@ -12,8 +12,13 @@
                 $.each($("#form_treasure_hunt").serializeArray(), function (i, field) {
                     params.set(field.name, field.value);
                 });
-                window.location.href = "/treasure_hunt?" + params.toString();
-                return false;
+                if (params.get("n_pics") <= params.get("n_correct")) {
+                    alert("จำนวนภาพที่ถูกต้อง ต้องมากกว่า จำนวนภาพทั้งหมด")
+                    return false;
+                } else {
+                    window.location.href = "/treasure_hunt?" + params.toString();
+                    return false;
+                }
             });
             $("#form_quick_draw").submit(function () {
                 const params = new URLSearchParams();
@@ -52,19 +57,19 @@
                     </select>
                 </div>
                 <div class="input-group mb-3">
-                    <span class="input-group-text" id="n_pics_label">จำนวนภาพ</span>
-                    <input name="n_pics" type="text" class="form-control" value="25"
-                           aria-label="จำนวนภาพ" aria-describedby="n_pics_label">
-                </div>
-                <div class="input-group mb-3">
-                    <span class="input-group-text" id="n_cols_label">จำนวนภาพต่อแถว</span>
-                    <input name="n_cols" type="number" class="form-control" value="5"
-                           aria-label="จำนวนภาพต่อแถว" aria-describedby="n_cols_label">
+                    <span class="input-group-text" id="n_pics_label">จำนวนภาพทั้งหมด</span>
+                    <input name="n_pics" type="number" class="form-control" value="25" min="1" max="100"
+                           aria-label="จำนวนภาพทั้งหมด" aria-describedby="n_pics_label">
                 </div>
                 <div class="input-group mb-3">
                     <span class="input-group-text" id="n_correct_label">จำนวนภาพที่ถูกต้อง</span>
-                    <input name="n_correct" type="number" class="form-control" value="5"
+                    <input name="n_correct" type="number" class="form-control" value="5" min="1" max="100"
                            aria-label="จำนวนภาพที่ถูกต้อง" aria-describedby="n_correct_label">
+                </div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="n_cols_label">จำนวนภาพต่อแถว</span>
+                    <input name="n_cols" type="number" class="form-control" value="5" min="1" max="10"
+                           aria-label="จำนวนภาพต่อแถว" aria-describedby="n_cols_label">
                 </div>
                 <button type="submit" class="btn btn-primary">Submit</button>
             </form>
@@ -84,12 +89,12 @@
                 </div>
                 <div class="input-group mb-3">
                     <span class="input-group-text" id="n_rounds_label">จำนวนรอบ</span>
-                    <input name="n_rounds" type="text" class="form-control" value="10"
+                    <input name="n_rounds" type="text" class="form-control" value="10" min="1" max="100"
                            aria-label="จำนวนรอบ" aria-describedby="n_rounds_label">
                 </div>
                 <div class="input-group mb-3">
                     <span class="input-group-text" id="n_col_label">จำนวนตัวเลือก</span>
-                    <input name="n_choices" type="number" class="form-control" value="2"
+                    <input name="n_choices" type="number" class="form-control" value="2" min="2" max="9"
                            aria-label="จำนวนตัวเลือก" aria-describedby="n_col_label">
                 </div>
                 <button type="submit" class="btn btn-primary">Submit</button>
