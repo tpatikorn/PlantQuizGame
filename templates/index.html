@@ -1,21 +1,99 @@
 {% extends 'base.html' %}
 
 {% block header %}
-    <h1>{% block title %}Main Page{% endblock %}</h1>
+    <h1>{% block title %}เลือก mode การเล่น{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
     <script>
-        $(document).ready(function () {
-            $("#hello").html("hahaha");
+        $(function () {
+            $("#form_treasure_hunt").submit(function () {
+                const params = new URLSearchParams();
+                $.each($("#form_treasure_hunt").serializeArray(), function (i, field) {
+                    params.set(field.name, field.value);
+                });
+                window.location.href = "/treasure_hunt?" + params.toString();
+                return false;
+            });
+            $("#form_quick_draw").submit(function () {
+                const params = new URLSearchParams();
+                $.each($("#form_quick_draw").serializeArray(), function (i, field) {
+                    params.set(field.name, field.value);
+                });
+                window.location.href = "/quick_draw?" + params.toString();
+                return false;
+            });
         });
     </script>
-    <div id="hello">
-        {% if g.user %}
-            <li><span>{{ g.user.username }}</span>
-        {% endif %}
-    </div>
-    <div id="hello2">
-        {{ g.user }}
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="treasure_hunt_tab" data-bs-toggle="tab" data-bs-target="#treasure_hunt"
+                    type="button" role="tab" aria-controls="home" aria-selected="true">Treasure Hunt
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="quick_draw_tab" data-bs-toggle="tab" data-bs-target="#quick_draw"
+                    type="button" role="tab" aria-controls="profile" aria-selected="false">Quick Draw
+            </button>
+        </li>
+    </ul>
+    <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade show active" id="treasure_hunt" role="tabpanel" aria-labelledby="treasure_hunt_tab">
+            <form id="form_treasure_hunt">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="target_type_label">ชนิดพืช</span>
+                    <select class="form-select" id="target_type" name="target_type"
+                            aria-label="target_type" aria-describedby="target_type_label">
+                        <option value="random">สุ่มชนิดพืช</option>
+                        {% for type in types %}
+                            <option value="{{ type.name }}"
+                                    {% if type.name == 'durian' %}selected{% endif %}>{{ type.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="n_pics_label">จำนวนภาพ</span>
+                    <input name="n_pics" type="text" class="form-control" value="25"
+                           aria-label="จำนวนภาพ" aria-describedby="n_pics_label">
+                </div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="n_cols_label">จำนวนภาพต่อแถว</span>
+                    <input name="n_cols" type="number" class="form-control" value="5"
+                           aria-label="จำนวนภาพต่อแถว" aria-describedby="n_cols_label">
+                </div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="n_correct_label">จำนวนภาพที่ถูกต้อง</span>
+                    <input name="n_correct" type="number" class="form-control" value="5"
+                           aria-label="จำนวนภาพที่ถูกต้อง" aria-describedby="n_correct_label">
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+        <div class="tab-pane fade" id="quick_draw" role="tabpanel" aria-labelledby="quick_draw_tab">
+            <form id="form_quick_draw">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="target_type_label">ชนิดพืช</span>
+                    <select class="form-select" id="target_type" name="target_type"
+                            aria-label="target_type" aria-describedby="target_type_label">
+                        <option value="random">สุ่มชนิดพืช</option>
+                        {% for type in types %}
+                            <option value="{{ type.name }}"
+                                    {% if type.name == 'durian' %}selected{% endif %}>{{ type.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="n_rounds_label">จำนวนรอบ</span>
+                    <input name="n_rounds" type="text" class="form-control" value="10"
+                           aria-label="จำนวนรอบ" aria-describedby="n_rounds_label">
+                </div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="n_col_label">จำนวนตัวเลือก</span>
+                    <input name="n_choices" type="number" class="form-control" value="2"
+                           aria-label="จำนวนตัวเลือก" aria-describedby="n_col_label">
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+        </div>
     </div>
 {% endblock %}

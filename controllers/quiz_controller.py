@@ -40,7 +40,7 @@ def image_treasure_hunt(size=25, treasure_count=5, main_category_id=-1):
                                         "from images inner join image_tags itags on images.id = itags.image_id "
                                         "where itags.tag_id = %s and images.active = true and itags.active = true "
                                         "group by images.id, images.filename, images.dir, images.active "
-                                        "order by random() limit %s;", [treasure_cat_id, size - treasure_count])))
+                                        "order by random() limit %s;", [treasure_cat_id, treasure_count])))
     other = list(map(lambda _: Image(_),
                      dbc.select_all("select images.id, images.filename, images.dir, images.active, "
                                     "STRING_AGG(itags.tag_id::text, ',') as tag_id "

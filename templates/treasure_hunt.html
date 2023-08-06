@@ -20,27 +20,20 @@
         let start_time;
         $(function () {
             $({{ all_img_src|safe }}).preload();
-
-            const n_col = get_game_data("n_col", parseInt);
-            const n_row = Math.ceil(get_game_data("n_pics", parseInt) / n_col);
-            const img_width = 100;
-            const td_width = img_width + 6;
-            $("#treasure_map").css("height", n_row * td_width + "px").css("width", n_col * td_width + "px");
-            $(".game_column").css("width", td_width + "px").css("height", td_width + "px");
-            $(".game_img").css("width", img_width + "px").css("height", img_width + "px").hide();
+            $(".treasure_img").hide();
 
             $('#start').on('click', function () {
                 alert("เริ่ม!")
                 $("#start").prop("disabled", true).removeClass("btn-primary").add("btn-secondary");
                 $(".game_td_img").css("border", "transparent");
-                $(".game_img").show();
+                $(".treasure_img").show();
                 start_time = Date.now();
 
                 timer = setInterval(function () {
                     $("#time_lapse").html(time_elapse_text())
                 }, 5);
             });
-            $('.game_img').on('click', function () {
+            $('.treasure_img').on('click', function () {
                 if (!playing) {
                     return;
                 }
@@ -90,22 +83,22 @@
 
     <div id="quiz" class="main_game">
         <input type="button" id="start" value="start" class="btn btn-primary"> <br>
-        <span for="correct" class="badge bg-success">#correct
-        <span id="correct" class="badge bg-light text-dark">0</span></span>
-        <span for="incorrect" class="badge bg-danger">#incorrect
-        <span id="incorrect" class="badge bg-light text-dark">0</span></span><br>
+        <label for="correct" class="badge bg-success">#correct
+        <span id="correct" class="badge bg-light text-dark">0</span></label>
+        <label for="incorrect" class="badge bg-danger">#incorrect
+        <span id="incorrect" class="badge bg-light text-dark">0</span></label><br>
         <label for="time_lapse">เวลาที่ใช้: </label>
         <span id="time_lapse">00 นาที 00.000 วินาที</span>
-        <div id="treasure_map" class="main_game">
+        <div id="game_treasure_map" class="main_game">
             {% for i in range(0, img|length) %}
-                {% if i % n_col == 0 %}
-                    <div class="game_row">
+                {% if i % n_cols == 0 %}
+                    <div class="treasure_row">
                 {% endif %}
-            <row id="{{ img[i].id }}" class="game_column">
-                <img src="images/{{ img[i].id }}" class="game_img" alt="{{ img[i].filename }}"
+            <row id="{{ img[i].id }}" class="treasure_column">
+                <img src="images/{{ img[i].id }}" class="treasure_img" alt="{{ img[i].filename }}"
                      data-correct="{% if treasure_cat_id in img[i].tag_id %}1{% else %}0{% endif %}" data-selected="false"/>
             </row>
-            {% if (i + 1) % n_col == 0 or i == img|length %}
+            {% if (i + 1) % n_cols == 0 or i == img|length %}
                 </div>
             {% endif %}
             {% endfor %}

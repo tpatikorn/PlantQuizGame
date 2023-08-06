@@ -1,28 +1,42 @@
 .main_game {
     text-align: center;
     margin: auto;
+    min-height:500px;
 }
 
-.game_img {
+.treasure_img {
+    border: 2px solid yellow;
+    padding: 1px;
+    width: 100%;
+    max-width: 100px;
+    aspect-ratio: auto;
+}
+
+.gunner_img {
     border: 2px solid yellow;
     padding: 1px;
     width: 100%;
     aspect-ratio: auto;
 }
 
-.game_column {
+.treasure_row {
+    display: inline-block;
+}
+
+.treasure_column {
     float: left;
     min-width: 100px;
 }
 
 .gunner_column {
     float: left;
+    min-width: 100px;
     width: 33.33%;
     padding: 10px;
 }
 
 /* Clear floats after the columns */
-.game_row:after {
+.treasure_row:after {
     content: "";
     display: table;
     clear: both;
@@ -34,12 +48,16 @@
     display: inline;
 }
 
-#treasure_map {
-    table-layout: fixed;
-    width: 100%
+#game_treasure_map {
+    margin: 0 auto;
+    width: 100%;
+    max-width: 900px;
+    height: 100%;
+    min-height: 500px;
+    padding: 10px;
 }
 
-#quick_draw {
+#game_quick_draw {
     margin: 0 auto;
     width: 100%;
     max-width: 500px;
