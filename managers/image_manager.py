@@ -12,7 +12,6 @@ def fetch_image_tags(query_dict: dict = None) -> list[Tag]:
 
 
 def fetch_image_from_id(image_id: int) -> Image:
-    print(Image.get_query(["image_id"]))
     return Image(dbc.select_one(Image.get_query(["id"]), [image_id]))
 
 
