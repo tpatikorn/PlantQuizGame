@@ -20,7 +20,7 @@
             const n_rounds = get_game_data("n_rounds", parseInt);
             const n_choices = get_game_data("n_choices", parseInt);
             const correct_type_id = get_game_data("correct_type_id", parseInt);
-            const choice_location = ["#img_ml", "#img_mr", "#img_tm", "#img_mm", "#img_tl", "#img_tr", "#img_bm", "#img_bl", "#img_br"];
+            const choice_location = [{% for i in [3,5,1,4,0,2,7,6,8] %}"#img_{{ i }}", {% endfor %}];
 
             $({{ all_img_src|safe }}).preload();
             const all_img = JSON.parse('{{ img|safe }}');
@@ -34,6 +34,9 @@
                         .attr("src", "images/" + this_round_img["id"])
                         .data("correct", this_round_img["tag_id"].includes(correct_type_id) ? 1 : 0)
                         .data("selected", false);
+                    $("#overlay_" + $(choice_location[i]).data("img_id"))
+                        .removeClass("correct")
+                        .removeClass("incorrect");
                 }
             }
 
@@ -58,6 +61,7 @@
                     const correctness = $(this).data("correct");
                     if (correctness === 1) {
                         $(this).css("border-color", "green");
+                        $("#overlay_" + $(this).data("img_id")).addClass("correct");
                         scores.correct += 1
                         current_round++;
                         if (current_round < n_rounds) {
@@ -65,6 +69,7 @@
                         }
                     } else {
                         $(this).css("border-color", "red");
+                        $("#overlay_" + $(this).data("img_id")).addClass("incorrect");
                         scores.incorrect += 1
                     }
 
@@ -87,23 +92,23 @@
             $(document).on('keydown', function (event) {
                 // Check the keyCode or key for the specific keys you want to target (W, A, S, D)
                 if (event.keyCode === 81 || event.key === 'q') {
-                    $("#img_tl").click();
+                    $("#img_0").click();
                 } else if (event.keyCode === 87 || event.key === 'w') {
-                    $("#img_tm").click();
+                    $("#img_1").click();
                 } else if (event.keyCode === 69 || event.key === 'e') {
-                    $("#img_tr").click();
+                    $("#img_2").click();
                 } else if (event.keyCode === 65 || event.key === 'a') {
-                    $("#img_ml").click();
+                    $("#img_3").click();
                 } else if (event.keyCode === 83 || event.key === 's') {
-                    $("#img_mm").click();
+                    $("#img_4").click();
                 } else if (event.keyCode === 68 || event.key === 'd') {
-                    $("#img_mr").click();
+                    $("#img_5").click();
                 } else if (event.keyCode === 90 || event.key === 'z') {
-                    $("#img_bl").click();
+                    $("#img_6").click();
                 } else if (event.keyCode === 88 || event.key === 'x') {
-                    $("#img_bm").click();
+                    $("#img_7").click();
                 } else if (event.keyCode === 67 || event.key === 'c') {
-                    $("#img_br").click();
+                    $("#img_8").click();
                 }
             });
         });
@@ -125,7 +130,8 @@
         </div>
     </div>
     <div id="quiz" class="main_game">
-        <h2><span class="badge badge-secondary">⭐</span> สามารถใช้กดปุ่มคีย์บอร์ดแทนการคลิกช่องแถว บน(qwe) กลาง(asd) ล่าง(zxc) ได้<span class="badge badge-secondary">⭐</span></h2>
+        <h2><span class="badge badge-secondary">⭐</span> สามารถใช้กดปุ่มคีย์บอร์ดแทนการคลิกช่องแถว บน(qwe) กลาง(asd)
+            ล่าง(zxc) ได้<span class="badge badge-secondary">⭐</span></h2>
         <input type="button" id="start" value="start" class="btn btn-primary"> <br>
         <span class="badge bg-success">#correct
         <span id="correct" class="badge bg-light text-dark">0</span></span>
@@ -135,46 +141,13 @@
         <span id="time_lapse">00 นาที 00.000 วินาที</span>
         <div id="game_quick_draw" class="main_game">
             <div class="gunner_row">
-                <!-- top left             -->
-                <div class="gunner_column">
-                    <img id="img_tl" class="gunner_img" alt="img_tl" src="{{ url_for('static', filename='blank.png') }}"/>
-                </div>
-                <!-- top mid      = UP    -->
-                <div class="gunner_column">
-                    <img id="img_tm" class="gunner_img" alt="img_tm" src="{{ url_for('static', filename='blank.png') }}"/>
-                </div>
-                <!-- top right            -->
-                <div class="gunner_column">
-                    <img id="img_tr" class="gunner_img" alt="img_tr" src="{{ url_for('static', filename='blank.png') }}"/>
-                </div>
-            </div>
-            <div class="gunner_row">
-                <!-- bottom left  = LEFT  -->
-                <div class="gunner_column">
-                    <img id="img_ml" class="gunner_img" alt="img_ml" src="{{ url_for('static', filename='blank.png') }}"/>
-                </div>
-                <!-- bottom mid   = DOWN  -->
-                <div class="gunner_column">
-                    <img id="img_mm" class="gunner_img" alt="img_mm" src="{{ url_for('static', filename='blank.png') }}"/>
-                </div>
-                <!-- bottom right = RIGHT -->
-                <div class="gunner_column">
-                    <img id="img_mr" class="gunner_img" alt="img_mr" src="{{ url_for('static', filename='blank.png') }}"/>
-                </div>
-            </div>
-            <div class="gunner_row">
-                <!-- bottom left  = LEFT  -->
-                <div class="gunner_column">
-                    <img id="img_bl" class="gunner_img" alt="img_bl" src="{{ url_for('static', filename='blank.png') }}"/>
-                </div>
-                <!-- bottom mid   = DOWN  -->
-                <div class="gunner_column">
-                    <img id="img_bm" class="gunner_img" alt="img_bm" src="{{ url_for('static', filename='blank.png') }}"/>
-                </div>
-                <!-- bottom right = RIGHT -->
-                <div class="gunner_column">
-                    <img id="img_br" class="gunner_img" alt="img_br" src="{{ url_for('static', filename='blank.png') }}"/>
-                </div>
+                {% for i in range(9) %}
+                    <div class="gunner_column">
+                        <img id="img_{{ i }}" class="gunner_img" alt="img_{{ i }}" data-img_id="{{ i }}"
+                             src="{{ url_for('static', filename='blank.png') }}"/>
+                        <div class="overlay" id="overlay_{{ i }}"></div>
+                    </div>
+                {% endfor %}
             </div>
         </div>
     </div>

@@ -38,9 +38,11 @@
                     const correctness = $(this).data("correct");
                     if (correctness === 1) {
                         $(this).css("border", "2px solid green");
+                        $("#overlay_"+$(this).data("img_id")).addClass("correct");
                         scores.correct += 1
                     } else {
                         $(this).css("border", "2px solid red");
+                        $("#overlay_"+$(this).data("img_id")).addClass("incorrect");
                         scores.incorrect += 1
                     }
                     $(this).data("selected", true);
@@ -93,7 +95,9 @@
                 {% endif %}
             <row id="{{ img[i].id }}" class="treasure_column">
                 <img src="images/{{ img[i].id }}" class="treasure_img" alt="{{ img[i].filename }}"
-                     data-correct="{% if treasure_cat_id in img[i].tag_id %}1{% else %}0{% endif %}" data-selected="false"/>
+                     data-correct="{% if treasure_cat_id in img[i].tag_id %}1{% else %}0{% endif %}"
+                     data-selected="false" data-img_id="{{ img[i].id }}"/>
+                <div class="overlay" id="overlay_{{ img[i].id }}"></div>
             </row>
             {% if (i + 1) % n_cols == 0 or i == img|length %}
                 </div>
