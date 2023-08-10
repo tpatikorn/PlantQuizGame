@@ -1,6 +1,7 @@
 flask==2.3.2
 flask-cors
 psycopg2==2.9.7
-eventlet
-python-dotenv
+eventlet==0.33.3
+python-dotenv==1.0.0
 flask_socketio
+Werkzeug==2.3.6

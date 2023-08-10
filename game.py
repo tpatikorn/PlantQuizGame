@@ -1,3 +1,4 @@
+from app import socketio
 from flask import Blueprint, request, render_template
 import random
 from controllers.quiz_controller import image_treasure_hunt, image_quick_draw
@@ -52,8 +53,6 @@ def chat():
 
     img, correct_type_id = image_quick_draw(n_rounds, n_choices, target_type.id)
     all_img_src = [f"/images/{i.id}" for i_row in img for i in i_row]
-    correct_choices = [[i.tag_id for i in i_row] for i_row in img]
-    print(*correct_choices, sep='\n')
     correct_choices = [[1 if correct_type_id in i.tag_id else 0 for i in i_row] for i_row in img]
     print(correct_choices)
     return render_template("chat.html", img=img, correct_choices=correct_choices, all_img_src=all_img_src,

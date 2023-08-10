@@ -1,36 +1,21 @@
-from flask_socketio import SocketIO
-from flask import Flask, jsonify, render_template, send_from_directory
+from flask import Flask, render_template, jsonify, send_from_directory
 from flask_cors import CORS
-import auth
-import game
+from flask_socketio import SocketIO
+
 from managers.image_manager import fetch_image_tags, fetch_image_from_id
-import eventlet
-from eventlet import wsgi
+
+socketio = SocketIO()
 
 
-def create_app():
+def create_app(debug=False):
     # instantiate the app
     app = Flask(__name__)
     app.config.from_object(__name__)
-
+    app.debug = debug
     app.config.from_mapping(
         SECRET_KEY='dev',
     )
-    socketio = SocketIO(app)
-
-    @app.before_request
-    def init(*args):
-        auth.load_logged_in_user()
-        pass
-
-    @app.teardown_appcontext
-    def teardown(*args):
-        pass
-
-    # enable CORS
-    CORS(app, resources={r'/*': {'origins': '*'}})
-    app.register_blueprint(auth.bp)
-    app.register_blueprint(game.bp)
+    CORS(app, resources={r'/*': {'origins': '*'}})  # enable CORS
 
     @app.route('/index')
     @app.route('/')
@@ -47,7 +32,5 @@ def create_app():
         img = fetch_image_from_id(image_id)
         return send_from_directory(img.dir, img.filename)
 
+    socketio.init_app(app)
     return app
-
-
-wsgi.server(eventlet.listen(("127.0.0.1", 8080)), create_app())

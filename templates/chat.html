@@ -150,7 +150,30 @@
                     {% endfor %}
                 </div>
             </div>
-            <div id="chat" style="background-color: yellow; height: 100%;min-width: 35%; border:solid; margin: auto">1234</div>
+            <div id="chat" style="background-color: yellow; height: 100%;min-width: 35%; border:solid; margin: auto">
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
+                        integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
+                        crossorigin="anonymous"></script>
+                <script type="text/javascript" charset="utf-8">
+                    $(function () {
+                        var socket = io();
+                        socket.on('connect', function () {
+                            socket.emit('chat', 'I\'m connected!');
+                        });
+                        socket.on('chat_response', function (data) {
+                            console.log(data);
+                            $("#chat_log").html($("#chat_log").html() + "<br>" + data);
+                        });
+                        $("#chat_send").on("click", function () {
+                            console.log("sending: " + $("#chat_input").val())
+                            socket.emit('chat', $("#chat_input").val());
+                        })
+                    });
+                </script>
+                <label for="chat">message</label><input id="chat_input" type="text">
+                <button id="chat_send">send</button> <br>
+                <span id="chat_log"><h3>chat history</h3><br></span>
+            </div>
         </div>
     </div>
 
