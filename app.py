@@ -1,9 +1,11 @@
+from flask_socketio import SocketIO
 from flask import Flask, jsonify, render_template, send_from_directory
 from flask_cors import CORS
-from waitress import serve
+import auth
+import game
 from managers.image_manager import fetch_image_tags, fetch_image_from_id
-
-import auth, game
+import eventlet
+from eventlet import wsgi
 
 
 def create_app():
@@ -14,6 +16,7 @@ def create_app():
     app.config.from_mapping(
         SECRET_KEY='dev',
     )
+    socketio = SocketIO(app)
 
     @app.before_request
     def init(*args):
@@ -47,4 +50,4 @@ def create_app():
     return app
 
 
-serve(create_app(), host="0.0.0.0", port=8080)
+wsgi.server(eventlet.listen(("127.0.0.1", 8080)), create_app())

@@ -12,7 +12,7 @@
     aspect-ratio: auto;
 }
 
-.gunner_img {
+.quick_draw_img {
     border: 2px solid yellow;
     padding: 1px;
     width: 100%;
@@ -30,7 +30,7 @@
     position: relative;
 }
 
-.gunner_column {
+.quick_draw_column {
     float: left;
     min-width: 100px;
     width: 33.33%;
@@ -66,7 +66,7 @@
     width: 100%;
     max-width: 500px;
     height: 100%;
-    background-image: url(/static/gunner.png);
+    background-image: url(/static/quick_draw.png);
     background-repeat: no-repeat;
     background-position: top;
     background-size: 100%;

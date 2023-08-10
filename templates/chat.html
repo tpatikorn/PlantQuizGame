@@ -51,7 +51,7 @@
                     $("#time_lapse").html(time_elapse_text())
                 }, 5);
             });
-            $('.gunner_img').on('click', function () {
+            $('.quick_draw_img').on('click', function () {
                 if (!playing) {
                     return;
                 }
@@ -138,16 +138,19 @@
         <span id="incorrect" class="badge bg-light text-dark">0</span></span><br>
         <label for="time_lapse">เวลาที่ใช้: </label>
         <span id="time_lapse">00 นาที 00.000 วินาที</span>
-        <div id="game_quick_draw" class="main_game">
-            <div class="gunner_row">
-                {% for i in range(9) %}
-                    <div class="gunner_column">
-                        <img id="img_{{ i }}" class="gunner_img" alt="img_{{ i }}" data-img_id="{{ i }}"
-                             src="{{ url_for('static', filename='blank.png') }}"/>
-                        <div class="overlay" id="overlay_{{ i }}"></div>
-                    </div>
-                {% endfor %}
+        <div style="display: flex">
+            <div id="game_quick_draw" class="main_game" style="width: 60%">
+                <div class="quick_draw_row">
+                    {% for i in range(9) %}
+                        <div class="quick_draw_column">
+                            <img id="img_{{ i }}" class="quick_draw_img" alt="img_{{ i }}" data-img_id="{{ i }}"
+                                 src="{{ url_for('static', filename='blank.png') }}"/>
+                            <div class="overlay" id="overlay_{{ i }}"></div>
+                        </div>
+                    {% endfor %}
+                </div>
             </div>
+            <div id="chat" style="background-color: yellow; height: 100%;min-width: 35%; border:solid; margin: auto">1234</div>
         </div>
     </div>
 
