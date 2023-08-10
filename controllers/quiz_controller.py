@@ -53,7 +53,7 @@ def image_treasure_hunt(size=25, treasure_count=5, main_category_id=-1):
     return all_img, treasure_cat_id
 
 
-def image_quick_draw(n_rounds=10, n_choices=2, treasure_cat_id=-1):
+def image_quick_draw(n_rounds=10, n_choices=2, treasure_cat_id=-1) -> tuple[list[list[Image]], int]:
     treasure_cat_id = pick_target_from_main_category_id(treasure_cat_id).id
     treasures = list(map(lambda _: Image(_),
                          dbc.select_all("select images.id, images.filename, images.dir, images.active, "

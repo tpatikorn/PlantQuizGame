@@ -1,4 +1,4 @@
-function get_game_data(key, parser = String) {
+function get_game_data(key, parser = f => f) {
     return parser($("#game_data").data(key));
 }
 

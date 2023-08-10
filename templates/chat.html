@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 
 {% block header %}
-    <h1>{% block title %}สิงปืนไวแห่งเมืองจันทบูร: หาใบ {{ target_type }}{% endblock %}</h1>
+    <h1>{% block title %}CHAT {{ target_type }}{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
     <meta id="game_data"
           data-n_choices="{{ n_choices }}"
           data-n_rounds="{{ n_rounds }}"
-          data-correct_type_id="{{ correct_type_id }}"
+          data-correct_choices="{{ correct_choices }}"
     >
     <script type="text/javascript">
         let scores = {correct: 0, incorrect: 0};
@@ -19,7 +19,7 @@
         $(function () {
             const n_rounds = get_game_data("n_rounds", parseInt);
             const n_choices = get_game_data("n_choices", parseInt);
-            const correct_type_id = get_game_data("correct_type_id", parseInt);
+            const correct_choices = get_game_data("correct_choices");
             const choice_location = [{% for i in [3,5,1,4,0,2,7,6,8] %}"#img_{{ i }}", {% endfor %}];
 
             $({{ all_img_src|safe }}).preload();
@@ -31,7 +31,7 @@
                     $(choice_location[i])
                         .css("border-color", "transparent")
                         .attr("src", "/images/" + this_round_img["id"])
-                        .data("correct", this_round_img["tag_id"].includes(correct_type_id) ? 1 : 0)
+                        .data("correct", correct_choices[round_id][i])
                         .data("selected", false);
                     $("#overlay_" + $(choice_location[i]).data("img_id"))
                         .removeClass("correct")
