@@ -16,7 +16,7 @@
                     alert("จำนวนภาพที่ถูกต้อง ต้องมากกว่า จำนวนภาพทั้งหมด")
                     return false;
                 } else {
-                    window.location.href = "game/treasure_hunt?" + params.toString();
+                    window.location.href = "/game/treasure_hunt?" + params.toString();
                     return false;
                 }
             });
@@ -25,7 +25,7 @@
                 $.each($("#form_quick_draw").serializeArray(), function (i, field) {
                     params.set(field.name, field.value);
                 });
-                window.location.href = "game/quick_draw?" + params.toString();
+                window.location.href = "/game/quick_draw?" + params.toString();
                 return false;
             });
             $("#treasure_hunt_info").click(function () {
@@ -100,7 +100,7 @@
                     <input name="n_cols" type="number" class="form-control" value="5" min="1" max="10"
                            aria-label="จำนวนภาพต่อแถว" aria-describedby="n_cols_label">
                 </div>
-                <button id="treasure_hunt_info" type="button" class="btn btn-primary" style="margin:1em"><i class="bi bi-info-circle"></i> ตัวอย่าง
+                <button id="treasure_hunt_info" type="button" class="btn btn-primary" style="margin:1em"><i class="bi bi-info-circle"></i> ตัวอย่าง </button>
                 <button type="submit" class="btn btn-success" style="margin:1em"><i class="bi bi-play-circle"></i> Play!</button>
                 </button>
 
@@ -130,7 +130,7 @@
                     <input name="n_choices" type="number" class="form-control" value="2" min="2" max="9"
                            aria-label="จำนวนตัวเลือก" aria-describedby="n_col_label">
                 </div>
-                <button id="quick_draw_info" type="button" class="btn btn-primary" style="margin:1em"><i class="bi bi-info-circle"></i> ตัวอย่าง
+                <button id="quick_draw_info" type="button" class="btn btn-primary" style="margin:1em"><i class="bi bi-info-circle"></i> ตัวอย่าง </button>
                 <button type="submit" class="btn btn-success" style="margin:1em"><i class="bi bi-play-circle"></i> Play!</button>
             </form>
         </div>

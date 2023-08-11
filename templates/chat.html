@@ -10,6 +10,10 @@
           data-n_rounds="{{ n_rounds }}"
           data-correct_choices="{{ correct_choices }}"
     >
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
+            integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
+            crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="{{ url_for("static", filename="chat.css") }}"/>
     <script type="text/javascript">
         let scores = {correct: 0, incorrect: 0};
         let playing = true;
@@ -88,28 +92,30 @@
                 }
             });
 
-            $(document).on('keydown', function (event) {
-                // Check the keyCode or key for the specific keys you want to target (W, A, S, D)
-                if (event.keyCode === 81 || event.key === 'q') {
-                    $("#img_0").click();
-                } else if (event.keyCode === 87 || event.key === 'w') {
-                    $("#img_1").click();
-                } else if (event.keyCode === 69 || event.key === 'e') {
-                    $("#img_2").click();
-                } else if (event.keyCode === 65 || event.key === 'a') {
-                    $("#img_3").click();
-                } else if (event.keyCode === 83 || event.key === 's') {
-                    $("#img_4").click();
-                } else if (event.keyCode === 68 || event.key === 'd') {
-                    $("#img_5").click();
-                } else if (event.keyCode === 90 || event.key === 'z') {
-                    $("#img_6").click();
-                } else if (event.keyCode === 88 || event.key === 'x') {
-                    $("#img_7").click();
-                } else if (event.keyCode === 67 || event.key === 'c') {
-                    $("#img_8").click();
-                }
+            let socket = io();
+            socket.on('connect', function () {
+                socket.emit('chat', ["{{ g.user.username }}", 'I\'m connected!']);
             });
+            socket.on('chat_response', function (data) {
+                console.log(data);
+                const username = data[0];
+                const message = data[1];
+                let appendage;
+                if (username === "{{ g.user.username }}") {
+                    appendage = `<li class="clearfix"><div class="message-data"><span class="message-data-name"><i class="fa fa-circle you"></i>${username}</span></div><div class="message you-message">${message}</div></li>`;
+                } else {
+                    appendage = `<li class="clearfix"><div class="message-data align-right"><span class="message-data-name">${username}</span> <i class="fa fa-circle me"></i></div><div class="message me-message float-right">${message}</div></li>`;
+                }
+
+                const $chat_log = $("#chat_log");
+                $("#chat_log_list").append(appendage);
+                $chat_log.animate({scrollTop: $chat_log.prop("scrollHeight")}, 200);
+            });
+            $("#chat_send").on("click", function () {
+                let $chat_input = $("#chat_input");
+                socket.emit('chat', ["{{ g.user.username }}", $chat_input.val()]);
+                $chat_input.val('');
+            })
         });
 
     </script>
@@ -139,7 +145,7 @@
         <label for="time_lapse">เวลาที่ใช้: </label>
         <span id="time_lapse">00 นาที 00.000 วินาที</span>
         <div style="display: flex">
-            <div id="game_quick_draw" class="main_game" style="width: 60%">
+            <div id="game_quick_draw" class="main_game" style="min-width: 60%">
                 <div class="quick_draw_row">
                     {% for i in range(9) %}
                         <div class="quick_draw_column">
@@ -150,29 +156,19 @@
                     {% endfor %}
                 </div>
             </div>
-            <div id="chat" style="background-color: yellow; height: 100%;min-width: 35%; border:solid; margin: auto">
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
-                        integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
-                        crossorigin="anonymous"></script>
-                <script type="text/javascript" charset="utf-8">
-                    $(function () {
-                        var socket = io();
-                        socket.on('connect', function () {
-                            socket.emit('chat', 'I\'m connected!');
-                        });
-                        socket.on('chat_response', function (data) {
-                            console.log(data);
-                            $("#chat_log").html($("#chat_log").html() + "<br>" + data);
-                        });
-                        $("#chat_send").on("click", function () {
-                            console.log("sending: " + $("#chat_input").val())
-                            socket.emit('chat', $("#chat_input").val());
-                        })
-                    });
-                </script>
-                <label for="chat">message</label><input id="chat_input" type="text">
-                <button id="chat_send">send</button> <br>
-                <span id="chat_log"><h3>chat history</h3><br></span>
+            <div id="chatbox" class="chat"
+                 style="background-color: yellow; height: 500px;min-width: 40%; border:solid; margin: auto;">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="chat_input_label">ข้อความ</span>
+                    <input id="chat_input" type="text" class="form-control" aria-label="ข้อความ"
+                           aria-describedby="chat_input_label">
+                    <button id="chat_send" type="button" class="btn btn-primary"> send</button>
+                </div>
+                <h3>chat history</h3>
+                <div class="chat-history" id="chat_log"
+                     style="height:380px;max-width: 95%;word-wrap: break-word;margin:auto;text-align: left;overflow-y:scroll">
+                    <ul class="chat-ul" id="chat_log_list"></ul>
+                </div>
             </div>
         </div>
     </div>

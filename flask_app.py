@@ -1,3 +1,5 @@
+from html import escape
+
 from flask_socketio import emit
 
 from app import create_app, socketio
@@ -18,8 +20,10 @@ if __name__ == "__main__":
 
     @socketio.on('chat')
     def handle_my_custom_event(data):
-        print(data)
-        emit('chat_response', data, broadcast=True)
+        print(data[0], data[1])
+        username = escape(data[0])
+        message = escape(data[1])
+        emit('chat_response', [username, message], broadcast=True)
 
 
     import auth

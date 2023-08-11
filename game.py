@@ -11,7 +11,7 @@ bp = Blueprint('game', __name__, url_prefix='/game')
 def treasure_hunt():
     n_pics = int(request.args.get("n_pics", default=25))
     n_correct = int(request.args.get("n_correct", default=5))
-    n_cols = int(request.args.get("n_col", default=5))
+    n_cols = int(request.args.get("n_cols", default=5))
     target_type = request.args.get("target_type", default="durian")
     n_correct = min(n_correct, n_pics)
 
