@@ -1,18 +1,19 @@
-import psycopg2
-
-from connectors import db_connector as dbc
-from models.db_modelsx import UserX
+from flask import g
+from sqlalchemy import select, insert
+from models.db_models import User
 from werkzeug.security import check_password_hash, generate_password_hash
+from psycopg2.errors import UniqueViolation
 
 
 def find_username(username):
-    user = dbc.select_one(UserX.get_query(["username"]), [username])
-    return UserX(user) if user is not None else None
+    user = g.session.scalars(select(User).where(User.username == username)).first()
+    print(username, user)
+    return user if user is not None else None
 
 
 def find_userid(user_id):
-    user = dbc.select_one(UserX.get_query(["id"]), [user_id])
-    return UserX(user) if user is not None else None
+    user = g.session.scalars(select(User).where(User.id == user_id)).first()
+    return user if user is not None else None
 
 
 def login(username, password):
@@ -27,7 +28,11 @@ def register(username, password, email):
     on failure, return -1
     """
     try:
-        return dbc.execute_commit_fetch("insert into users (username, password, email) values(%s, %s, %s)",
-                                        [username, generate_password_hash(password), email])
-    except psycopg2.ProgrammingError:
+        q = insert(User).values(username=username,
+                                password=generate_password_hash(password),
+                                email=email).returning(User.id)
+        result = g.session.execute(q)
+        g.session.commit()
+        return result.first()
+    except UniqueViolation:
         return -1

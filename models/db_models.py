@@ -1,13 +1,8 @@
 import json
-import os
 from dataclasses import dataclass
 from typing import Optional, List
-from urllib.parse import quote
-
-from sqlalchemy import Boolean, ForeignKey, select, create_engine, Text, Table, Column
-from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped, relationship, Session, MappedAsDataclass
-
-from app import create_app
+from sqlalchemy import Boolean, ForeignKey, select, Text, Table, Column
+from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped, relationship, MappedAsDataclass
 
 
 @dataclass
@@ -83,8 +78,13 @@ class User(Base):
 
 
 if __name__ == "__main__":
+    from app import create_app
+    import os
+    from dotenv import load_dotenv
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import Session
+
     with create_app().app_context():
-        from dotenv import load_dotenv
 
         load_dotenv()
         engine = create_engine("postgresql://%s:%s@%s:5432/%s" %

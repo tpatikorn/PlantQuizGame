@@ -1,28 +1,46 @@
-from connectors import db_connector as dbc
-from models.db_modelsx import ImageX, TagX
+from flask import g
+from sqlalchemy import select
+from models.db_models import Image, Tag, ImageTag
 
 
-def fetch_image_tags(query_dict: dict = None) -> list[TagX]:
+def fetch_tags(query_dict: dict[str, any] = None) -> list[Tag]:
     if query_dict is None:
         query_dict = {}
-
-    result = list(map(lambda _: TagX(_),
-                      dbc.select_all(TagX.get_query(list(query_dict.keys())), list(query_dict.values()))))
+    q = select(Tag).where(**query_dict)
+    result = [_ for _ in g.session.scalars(q).fetchall()]
     return result
 
 
-def fetch_image_from_id(image_id: int) -> ImageX:
-    return ImageX(dbc.select_one(ImageX.get_query(["id"]), [image_id]))
+def fetch_image_from_id(image_id: int) -> Image:
+    q = select(Image).where(Image.id == image_id)
+    result = g.session.scalars(q).first()
+    return result
 
 
-def fetch_images(query_dict: dict[str, any] = None) -> list[ImageX]:
-    if query_dict is None:
-        query_dict = {}
-    return list(map(lambda _: ImageX(_),
-                    dbc.select_all(ImageX.get_query(list(query_dict.keys())), list(query_dict.values()))))
+def fetch_images(conditions) -> list[Image]:
+    q = select(Image).join(ImageTag).join(Tag).where(conditions)
+    result = [_ for _ in g.session.scalars(q).fetchall()]
+    return result
 
 
 if __name__ == "__main__":
-    print(fetch_image_tags())
-    print(fetch_images({"tag_ids": (1, 2)}))
-    print(fetch_image_from_id(7))
+    from app import create_app
+    import os
+    from dotenv import load_dotenv
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import Session
+
+    with create_app().app_context():
+
+        load_dotenv()
+        engine = create_engine("postgresql://%s:%s@%s:5432/%s" %
+                               (os.getenv("DB_USER"),
+                                os.getenv("DB_PASS"),
+                                os.getenv("DB_SERVER"),
+                                os.getenv("DB_DB")))
+
+        with Session(engine) as session:
+            g.session = session
+            print(fetch_tags())
+            print(fetch_images(Tag.id == 2))
+            print(fetch_image_from_id(7))

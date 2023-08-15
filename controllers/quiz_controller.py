@@ -1,12 +1,12 @@
-from managers.image_manager import fetch_images, fetch_image_tags
+from managers.image_manager import fetch_images, fetch_tags
 from random import sample, shuffle
 from connectors import db_connector as dbc
 from models.db_modelsx import ImageX, TagX
 
 
 def random_question(num_choices=4):
-    all_cats = fetch_image_tags()
-    correct_cat = sample(fetch_image_tags(), 1)[0]
+    all_cats = fetch_tags()
+    correct_cat = sample(fetch_tags(), 1)[0]
     print(correct_cat)
     image = sample(fetch_images({"tag_ids": tuple([correct_cat.id])}), 1)[0]
 
@@ -22,13 +22,13 @@ def random_question(num_choices=4):
 def pick_target_from_main_category_id(treasure_cat_id: int) -> TagX:
     if treasure_cat_id == -1:
         return sample(list(filter(lambda _: _.tag_type_id is not None,
-                                  fetch_image_tags())), 1)[0]
+                                  fetch_tags())), 1)[0]
     elif treasure_cat_id is None:
         return sample(list(filter(lambda _: _.tag_type_id is None,
-                                  fetch_image_tags())), 1)[0]
+                                  fetch_tags())), 1)[0]
     else:
         return sample(list(filter(lambda _: _.id == treasure_cat_id,
-                                  fetch_image_tags())), 1)[0]
+                                  fetch_tags())), 1)[0]
 
 
 def image_treasure_hunt(size=25, treasure_count=5, main_category_id=-1):
@@ -81,7 +81,7 @@ if __name__ == "__main__":
     print("Question:", q)
     print(*a, sep="\n")
 
-    durian = list(filter(lambda _: _.name == "durian", fetch_image_tags()))[0]
+    durian = list(filter(lambda _: _.name == "durian", fetch_tags()))[0]
     print("drr", durian)
     a, b = image_treasure_hunt(25, 5, durian.id)
     for x, y in zip(a, b):
