@@ -1,18 +1,18 @@
 import psycopg2
 
 from connectors import db_connector as dbc
-from models.db_models import User
+from models.db_modelsx import UserX
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
 def find_username(username):
-    user = dbc.select_one(User.get_query(["username"]), [username])
-    return User(user) if user is not None else None
+    user = dbc.select_one(UserX.get_query(["username"]), [username])
+    return UserX(user) if user is not None else None
 
 
 def find_userid(user_id):
-    user = dbc.select_one(User.get_query(["id"]), [user_id])
-    return User(user) if user is not None else None
+    user = dbc.select_one(UserX.get_query(["id"]), [user_id])
+    return UserX(user) if user is not None else None
 
 
 def login(username, password):
