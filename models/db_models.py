@@ -1,16 +1,20 @@
 import json
-from dataclasses import dataclass
 from typing import Optional, List
 from sqlalchemy import Boolean, ForeignKey, select, Text, Table, Column
 from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped, relationship, MappedAsDataclass
 
 
-@dataclass
 class Base(MappedAsDataclass, DeclarativeBase):
     json_field_list = None
 
     def to_json(self):
         return json.dumps({key: self.__getattribute__(key) for key in self.json_field_list})
+
+    def __str__(self):
+        return self.to_json()
+
+    def __repr__(self):
+        return self.to_json()
 
 
 ImageTag = Table(
@@ -22,7 +26,6 @@ ImageTag = Table(
 )
 
 
-@dataclass
 class Image(Base):
     __tablename__ = "images"
     json_field_list = ["id"]
@@ -34,8 +37,13 @@ class Image(Base):
     tags: Mapped[List["Tag"]] = relationship(secondary=ImageTag,
                                              back_populates="images", repr=False)
 
+    def __str__(self):
+        return self.to_json()
 
-@dataclass
+    def __repr__(self):
+        return self.to_json()
+
+
 class Tag(Base):
     __tablename__ = "tags"
     json_field_list = ["id", "name", "name_th", "name_en", "description", "tag_type_id"]
@@ -51,8 +59,13 @@ class Tag(Base):
                                                  back_populates="tags", repr=False)
     tag_type: Mapped["TagType"] = relationship(back_populates="tags", repr=False)
 
+    def __str__(self):
+        return self.to_json()
 
-@dataclass
+    def __repr__(self):
+        return self.to_json()
+
+
 class TagType(Base):
     __tablename__ = "tag_types"
     json_field_list = ["id", "name", "description"]
@@ -64,7 +77,6 @@ class TagType(Base):
     tags: Mapped[List["Tag"]] = relationship(back_populates="tag_type", repr=False)
 
 
-@dataclass
 class User(Base):
     __tablename__ = "users"
     json_field_list = ["id", "username", "email", "admin"]
@@ -85,7 +97,6 @@ if __name__ == "__main__":
     from sqlalchemy.orm import Session
 
     with create_app().app_context():
-
         load_dotenv()
         engine = create_engine("postgresql://%s:%s@%s:5432/%s" %
                                (os.getenv("DB_USER"),
@@ -94,8 +105,8 @@ if __name__ == "__main__":
                                 os.getenv("DB_DB")))
 
         with Session(engine) as session:
-            q = select(Image).join(ImageTag).join(Tag).where(Tag.id == 2)
+            q = select(Image).join(ImageTag).join(Tag).where(Tag.id == 2).limit(10)
             result = session.scalars(q).fetchall()
-            for r in result:
-                print(type(r), r)
+            print(result)
+            print(type(result[0]), result[0])
             print("done")

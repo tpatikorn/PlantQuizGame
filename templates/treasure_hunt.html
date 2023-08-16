@@ -95,7 +95,7 @@
                 {% endif %}
             <row id="{{ img[i].id }}" class="treasure_column">
                 <img src="/images/{{ img[i].id }}" class="treasure_img" alt="{{ img[i].filename }}"
-                     data-correct="{% if treasure_cat_id in img[i].tag_id %}1{% else %}0{% endif %}"
+                     data-correct="{{ ans[i] }}"
                      data-selected="false" data-img_id="{{ img[i].id }}"/>
                 <div class="overlay" id="overlay_{{ img[i].id }}"></div>
             </row>

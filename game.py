@@ -15,12 +15,12 @@ def treasure_hunt():
     n_correct = min(n_correct, n_pics)
 
     if target_type == "random":
-        category = random.sample(fetch_tags(), 1)[0]
+        category = random.sample(fetch_tags(limit=1), 1)[0]
     else:
         category = list(filter(lambda _: _.name == target_type, fetch_tags()))[0]
-    img, treasure_cat_id = image_treasure_hunt(n_pics, n_correct, category.id)
+    img, ans = image_treasure_hunt(n_pics, n_correct, category.id)
     all_img_src = [f"/images/{i.id}" for i in img]
-    return render_template("treasure_hunt.html", img=img, treasure_cat_id=treasure_cat_id, all_img_src=all_img_src,
+    return render_template("treasure_hunt.html", img=img, ans=ans, all_img_src=all_img_src,
                            n_cols=n_cols, target_type=category.name, n_correct=n_correct)
 
 
@@ -32,13 +32,13 @@ def quick_draw():
     target_type_name = request.args.get("target_type", default="durian")
 
     if target_type_name == "random":
-        target_type = random.sample(fetch_tags(), 1)[0]
+        target_type = random.sample(fetch_tags(limit=1), 1)[0]
     else:
         target_type = list(filter(lambda _: _.name == target_type_name, fetch_tags()))[0]
 
-    img, correct_type_id = image_quick_draw(n_rounds, n_choices, target_type.id)
+    img, ans = image_quick_draw(n_rounds, n_choices, target_type.id)
     all_img_src = [f"/images/{i.id}" for i_row in img for i in i_row]
-    return render_template("quick_draw.html", img=img, correct_type_id=correct_type_id, all_img_src=all_img_src,
+    return render_template("quick_draw.html", img=img, ans=ans, all_img_src=all_img_src,
                            n_rounds=n_rounds, target_type=target_type.name, n_choices=n_choices)
 
 
@@ -52,7 +52,7 @@ def chat():
 
     img, correct_type_id = image_quick_draw(n_rounds, n_choices, target_type.id)
     all_img_src = [f"/images/{i.id}" for i_row in img for i in i_row]
-    correct_choices = [[1 if correct_type_id in i.tag_id else 0 for i in i_row] for i_row in img]
+    correct_choices = [[1 if correct_type_id in [t.id for t in i.tags] else 0 for i in i_row] for i_row in img]
     print(correct_choices)
     return render_template("chat.html", img=img, correct_choices=correct_choices, all_img_src=all_img_src,
                            n_rounds=n_rounds, target_type=target_type.name, n_choices=n_choices)

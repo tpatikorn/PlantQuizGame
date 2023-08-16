@@ -22,7 +22,7 @@ if __name__ == "__main__":
 
     @this_app.teardown_appcontext
     def teardown(*args):
-        pass
+        g.session.close()
 
 
     @this_app.before_request
