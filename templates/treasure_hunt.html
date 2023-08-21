@@ -93,12 +93,12 @@
                 {% if i % n_cols == 0 %}
                     <div class="treasure_row">
                 {% endif %}
-            <row id="{{ img[i].id }}" class="treasure_column">
+            <div id="{{ img[i].id }}" class="treasure_column">
                 <img src="/images/{{ img[i].id }}" class="treasure_img" alt="{{ img[i].filename }}"
                      data-correct="{{ ans[i] }}"
                      data-selected="false" data-img_id="{{ img[i].id }}"/>
                 <div class="overlay" id="overlay_{{ img[i].id }}"></div>
-            </row>
+            </div>
             {% if (i + 1) % n_cols == 0 or i == img|length %}
                 </div>
             {% endif %}

@@ -1,6 +1,6 @@
 from html import escape
-from flask import g
-from flask_socketio import emit
+from flask import g, session, request
+from flask_socketio import emit, join_room, rooms
 from app import create_app, socketio
 import os
 from sqlalchemy import create_engine
@@ -22,7 +22,8 @@ if __name__ == "__main__":
 
     @this_app.teardown_appcontext
     def teardown(*args):
-        g.session.close()
+        if hasattr(g, "session"):
+            g.session.close()
 
 
     @this_app.before_request
@@ -32,11 +33,21 @@ if __name__ == "__main__":
 
 
     @socketio.on('chat')
-    def handle_my_custom_event(data):
+    def chat(data):
         print(data[0], data[1])
         username = escape(data[0])
         message = escape(data[1])
-        emit('chat_response', [username, message], broadcast=True)
+        room = escape(data[2])
+        print(f"u:{username},m:{message},r{room}")
+        emit('chat_response', [username, message, room], to=room)
+
+
+    @socketio.on('join')
+    def join(data):
+        username = escape(data[0])
+        room = escape(data[1])
+        join_room(room)
+        emit('join_response', ["SYSTEM", f"{username} has joined the room '{room}'", room], to=room)
 
 
     import auth

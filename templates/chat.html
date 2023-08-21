@@ -9,6 +9,7 @@
           data-n_choices="{{ n_choices }}"
           data-n_rounds="{{ n_rounds }}"
           data-correct_choices="{{ correct_choices }}"
+          data-room=""
     >
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
             integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
@@ -92,11 +93,10 @@
                 }
             });
 
+
             let socket = io();
-            socket.on('connect', function () {
-                socket.emit('chat', ["{{ g.user.username }}", 'I\'m connected!']);
-            });
-            socket.on('chat_response', function (data) {
+
+            function handle_chat_response(data) {
                 console.log(data);
                 const username = data[0];
                 const message = data[1];
@@ -110,12 +110,26 @@
                 const $chat_log = $("#chat_log");
                 $("#chat_log_list").append(appendage);
                 $chat_log.animate({scrollTop: $chat_log.prop("scrollHeight")}, 200);
+            }
+
+            socket.on('chat_response', handle_chat_response);
+            socket.on('join_response', function (data) {
+                set_game_data("room", data[2]);
+                handle_chat_response(data);
+            });
+            $("#chat_join").on("click", function () {
+                let $chat_join_input = $("#chat_join_input");
+                socket.emit('join', ["{{ g.user.username }}", $chat_join_input.val()]);
+                $("#chat_join").attr("disabled", true).addClass("btn-secondary").removeClass("btn-primary");
+                $chat_join_input.attr("disabled", true);
+                $("#chat_send_input").attr("disabled", false);
+                $("#chat_send").attr("disabled", false);
             });
             $("#chat_send").on("click", function () {
-                let $chat_input = $("#chat_input");
-                socket.emit('chat', ["{{ g.user.username }}", $chat_input.val()]);
+                let $chat_input = $("#chat_send_input");
+                socket.emit('chat', ["{{ g.user.username }}", $chat_input.val(), get_game_data("room")]);
                 $chat_input.val('');
-            })
+            });
         });
 
     </script>
@@ -138,13 +152,13 @@
         <h2><span class="badge badge-secondary">⭐</span> สามารถใช้กดปุ่มคีย์บอร์ดแทนการคลิกช่องแถว บน(qwe) กลาง(asd)
             ล่าง(zxc) ได้<span class="badge badge-secondary">⭐</span></h2>
         <input type="button" id="start" value="start" class="btn btn-primary"> <br>
-        <span class="badge bg-success">#correct
-        <span id="correct" class="badge bg-light text-dark">0</span></span>
-        <span class="badge bg-danger">#incorrect
-        <span id="incorrect" class="badge bg-light text-dark">0</span></span><br>
+        <h4><span class="badge bg-success">#correct
+            <span id="correct" class="badge bg-light text-dark">0</span></span>
+            <span class="badge bg-danger">#incorrect
+            <span id="incorrect" class="badge bg-light text-dark">0</span></span><br></h4>
         <label for="time_lapse">เวลาที่ใช้: </label>
         <span id="time_lapse">00 นาที 00.000 วินาที</span>
-        <div style="display: flex">
+        <div style="display: flex; max-width: 1000px;margin:auto">
             <div id="game_quick_draw" class="main_game" style="min-width: 60%">
                 <div class="quick_draw_row">
                     {% for i in range(9) %}
@@ -156,18 +170,26 @@
                     {% endfor %}
                 </div>
             </div>
-            <div id="chatbox" class="chat"
-                 style="background-color: yellow; height: 500px;min-width: 40%; border:solid; margin: auto;">
+            <div id="chat_container" class="chat"
+                 style="height: 550px;min-width: 40%; border:solid; margin: auto;">
                 <div class="input-group mb-3">
-                    <span class="input-group-text" id="chat_input_label">ข้อความ</span>
-                    <input id="chat_input" type="text" class="form-control" aria-label="ข้อความ"
-                           aria-describedby="chat_input_label">
-                    <button id="chat_send" type="button" class="btn btn-primary"> send</button>
+                    <span class="input-group-text" id="chat_join_label">หมายเลขห้อง</span>
+                    <input id="chat_join_input" type="text" class="form-control" aria-label="หมายเลขห้อง"
+                           aria-describedby="chat_room_label" name="room">
+                    <button id="chat_join" type="button" class="btn btn-primary">เข้าห้อง</button>
                 </div>
-                <h3>chat history</h3>
-                <div class="chat-history" id="chat_log"
-                     style="height:380px;max-width: 95%;word-wrap: break-word;margin:auto;text-align: left;overflow-y:scroll">
-                    <ul class="chat-ul" id="chat_log_list"></ul>
+                <div id="chat_box">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="chat_send_label">ข้อความ</span>
+                        <input id="chat_send_input" type="text" class="form-control" aria-label="ข้อความ"
+                               aria-describedby="chat_input_label" disabled>
+                        <button id="chat_send" type="button" class="btn btn-primary" disabled>send</button>
+                    </div>
+                    <h3>chat history</h3>
+                    <div class="chat-history" id="chat_log"
+                         style="height:380px;max-width: 95%;word-wrap: break-word;margin:auto;text-align: left;overflow-y:scroll">
+                        <ul class="chat-ul" id="chat_log_list"></ul>
+                    </div>
                 </div>
             </div>
         </div>

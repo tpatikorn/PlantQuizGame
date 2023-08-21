@@ -20,7 +20,7 @@
 }
 
 .treasure_row {
-    display: inline-block;
+    display: inline-grid;
 }
 
 .treasure_column {
