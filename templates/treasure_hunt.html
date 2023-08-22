@@ -81,13 +81,7 @@
     </div>
 
     <div id="quiz" class="main_game">
-        <input type="button" id="start" value="start" class="btn btn-primary"> <br>
-        <label for="correct" class="badge bg-success">#correct
-        <span id="correct" class="badge bg-light text-dark">0</span></label>
-        <label for="incorrect" class="badge bg-danger">#incorrect
-        <span id="incorrect" class="badge bg-light text-dark">0</span></label><br>
-        <label for="time_lapse">เวลาที่ใช้: </label>
-        <span id="time_lapse">00 นาที 00.000 วินาที</span>
+        {% include 'game_start.html' %}
         <div id="game_treasure_map" class="main_game">
             {% for i in range(0, img|length) %}
                 {% if i % n_cols == 0 %}
