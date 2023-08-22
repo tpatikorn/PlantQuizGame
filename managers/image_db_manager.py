@@ -1,5 +1,4 @@
 import os
-from dotenv import load_dotenv
 from connectors.db_connector import DBConnector
 import itertools
 
@@ -75,6 +74,8 @@ def __traverse_path(path: str, folder_level_tags: list[int], dbc: DBConnector,
 
 
 if __name__ == "__main__":
+    from dotenv import load_dotenv
+
     load_dotenv()
     all_image_path = os.getenv("IMAGE_ROOT")
     all_images = sync_image_folder_with_db(all_image_path)

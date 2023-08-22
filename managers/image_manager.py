@@ -1,5 +1,5 @@
 from flask import g
-from sqlalchemy import select, and_
+from sqlalchemy import select
 from models.db_models import Image, Tag, ImageTag
 
 
@@ -47,31 +47,21 @@ def fetch_images_with_tags(include_tags=None, exclude_tags=None, limit=None) -> 
 
 
 if __name__ == "__main__":
-    from app import create_app
-    import os
-    from dotenv import load_dotenv
-    from sqlalchemy import create_engine
-    from sqlalchemy.orm import Session
+    def to_test():
+        print(fetch_tags())
+        print(fetch_tags(Tag.tag_type_id == 2))
+        result = fetch_images()
+        print(type(result), type(result[0]), len(result))
+        result = fetch_images(limit=5)
+        print(type(result), type(result[0]), len(result))
+        result = fetch_images(Tag.id == 2)
+        print(type(result), type(result[0]), len(result))
+        print(result[0].tags)
+        print(fetch_image_from_id(7))
+        print(fetch_images_with_tags(include_tags=[20], exclude_tags=[21], limit=10))
+        print(fetch_images_with_tags(include_tags=20, exclude_tags=21, limit=10))
 
-    with create_app().app_context():
-        load_dotenv()
-        engine = create_engine("postgresql://%s:%s@%s:5432/%s" %
-                               (os.getenv("DB_USER"),
-                                os.getenv("DB_PASS"),
-                                os.getenv("DB_SERVER"),
-                                os.getenv("DB_DB")))
 
-        with Session(engine) as session:
-            g.session = session
-            print(fetch_tags())
-            print(fetch_tags(Tag.tag_type_id == 2))
-            result = fetch_images()
-            print(type(result), type(result[0]), len(result))
-            result = fetch_images(limit=5)
-            print(type(result), type(result[0]), len(result))
-            result = fetch_images(Tag.id == 2)
-            print(type(result), type(result[0]), len(result))
-            print(result[0].tags)
-            print(fetch_image_from_id(7))
-            print(fetch_images_with_tags(include_tags=[20], exclude_tags=[21], limit=10))
-            print(fetch_images_with_tags(include_tags=20, exclude_tags=21, limit=10))
+    from util.simple_main_test import test_this
+
+    test_this(to_test)

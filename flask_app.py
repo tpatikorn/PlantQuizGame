@@ -34,11 +34,9 @@ if __name__ == "__main__":
 
     @socketio.on('chat')
     def chat(data):
-        print(data[0], data[1])
         username = escape(data[0])
         message = escape(data[1])
         room = escape(data[2])
-        print(f"u:{username},m:{message},r{room}")
         emit('chat_response', [username, message, room], to=room)
 
 

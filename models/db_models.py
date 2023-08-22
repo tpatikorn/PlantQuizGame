@@ -90,23 +90,14 @@ class User(Base):
 
 
 if __name__ == "__main__":
-    from app import create_app
-    import os
-    from dotenv import load_dotenv
-    from sqlalchemy import create_engine
-    from sqlalchemy.orm import Session
+    def to_test():
+        from flask import g
+        q = select(Image).join(ImageTag).join(Tag).where(Tag.id == 2).limit(10)
+        result = g.session.scalars(q).fetchall()
+        print(result)
+        print(type(result[0]), result[0])
+        print("done")
 
-    with create_app().app_context():
-        load_dotenv()
-        engine = create_engine("postgresql://%s:%s@%s:5432/%s" %
-                               (os.getenv("DB_USER"),
-                                os.getenv("DB_PASS"),
-                                os.getenv("DB_SERVER"),
-                                os.getenv("DB_DB")))
+    from util.simple_main_test import test_this
 
-        with Session(engine) as session:
-            q = select(Image).join(ImageTag).join(Tag).where(Tag.id == 2).limit(10)
-            result = session.scalars(q).fetchall()
-            print(result)
-            print(type(result[0]), result[0])
-            print("done")
+    test_this(to_test)

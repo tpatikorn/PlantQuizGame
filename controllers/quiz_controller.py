@@ -1,4 +1,3 @@
-from flask import g
 from managers.image_manager import fetch_images, fetch_tags, fetch_images_with_tags
 from random import sample, shuffle
 from models.db_models import Image, Tag
@@ -60,27 +59,17 @@ def image_quick_draw(n_rounds=10, n_choices=2, treasure_cat_id=-1) -> tuple[list
 
 
 if __name__ == "__main__":
-    from app import create_app
-    import os
-    from dotenv import load_dotenv
-    from sqlalchemy import create_engine
-    from sqlalchemy.orm import Session
+    def to_test():
+        q, a = random_question()
+        print("Question:", q)
+        print(*a, sep="\n")
 
-    with create_app().app_context():
-        load_dotenv()
-        engine = create_engine("postgresql://%s:%s@%s:5432/%s" %
-                               (os.getenv("DB_USER"),
-                                os.getenv("DB_PASS"),
-                                os.getenv("DB_SERVER"),
-                                os.getenv("DB_DB")))
+        durian = list(filter(lambda _: _.name == "durian", fetch_tags()))[0]
+        print("drr", durian)
+        a, b = image_treasure_hunt(25, 5, durian.id)
+        print(a, b)
 
-        with Session(engine) as session:
-            g.session = session
-            q, a = random_question()
-            print("Question:", q)
-            print(*a, sep="\n")
 
-            durian = list(filter(lambda _: _.name == "durian", fetch_tags()))[0]
-            print("drr", durian)
-            a, b = image_treasure_hunt(25, 5, durian.id)
-            print(a, b)
+    from util.simple_main_test import test_this
+
+    test_this(to_test)
