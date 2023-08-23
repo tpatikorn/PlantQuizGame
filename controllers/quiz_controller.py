@@ -69,7 +69,39 @@ if __name__ == "__main__":
         a, b = image_treasure_hunt(25, 5, durian.id)
         print(a, b)
 
+    def to_test2():
+        from flask import g
+        from sqlalchemy import text
+        # query for finding a set of "n_rounds" targets
+        # then, for each target, find incorrect choices equal to "n_choices"
+        # where incorrect choices have the same tags with tag_type_id=1, but different tags with tag_type_id=2
+        # e.g. both are durian leaves, but different diseases
+        sql_query = text("""
+with 
+img as (select it.image_id, 
+array_agg(t.id) filter(where t.tag_type_id = 1) l1, 
+array_agg(t.id) filter(where t.tag_type_id = 2) l2 
+from image_tags it inner join tags t on it.tag_id = t.id group by it.image_id order by random()),
+correct as (select * from img limit :n_rounds)
+select 
+correct.image_id, correct.l1, correct.l2, count(*),
+array_agg(wrong.image_id) alt_imgs, 
+array_agg(wrong.l2) alt_l2 
+from correct 
+inner join lateral 
+(select img.* from img where (img.l1 && correct.l1) and not (img.l2 && correct.l2) limit :n_choices) wrong using (l1)
+group by correct.image_id, correct.l1, correct.l2
+order by correct.image_id;""")
+
+        result = (
+            g.session.execute(sql_query, {"n_rounds": 10, "n_choices": 10})
+        ).fetchall()
+
+        for r in result:
+            print(r)
+
 
     from util.simple_main_test import test_this
 
     test_this(to_test)
+    test_this(to_test2)
