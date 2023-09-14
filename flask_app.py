@@ -1,19 +1,24 @@
 from html import escape
-from flask import g, session, request
-from flask_socketio import emit, join_room, rooms
+
+import flask_login
+from flask import g
+from flask_socketio import emit, join_room
 from app import create_app, socketio
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 
+from managers import user_manager
+
 if __name__ == "__main__":
     load_dotenv()
     # Connect to an existing database
-    engine = create_engine("postgresql://%s:%s@%s:5432/%s" %
+    engine = create_engine("postgresql://%s:%s@%s:%s/%s" %
                            (os.getenv("DB_USER"),
                             os.getenv("DB_PASS"),
                             os.getenv("DB_SERVER"),
+                            os.getenv("DB_PORT"),
                             os.getenv("DB_DB")))
 
     Session = sessionmaker(bind=engine)
@@ -53,4 +58,14 @@ if __name__ == "__main__":
 
     this_app.register_blueprint(auth.bp)
     this_app.register_blueprint(game.bp)
+
+    login_manager = flask_login.LoginManager()
+    login_manager.init_app(this_app)
+
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return user_manager.find_userid(user_id)
+
+
     socketio.run(this_app, "127.0.0.1", 8080)

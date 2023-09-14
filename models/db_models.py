@@ -78,7 +78,7 @@ class TagType(Base):
 
 
 class User(Base):
-    __tablename__ = "users"
+    __tablename__ = "legacy_users"
     json_field_list = ["id", "username", "email", "admin"]
 
     id: Mapped[int] = mapped_column(primary_key=True)

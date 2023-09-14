@@ -1,11 +1,20 @@
 import functools
 
+import flask_login
 import psycopg2
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
+from flask_login import (
+    LoginManager,
+    current_user,
+    login_required,
+    login_user,
+    logout_user,
+)
 
 from managers import user_manager
+from models.db_models import User
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -37,8 +46,8 @@ def register():
     return render_template('auth/register.html')
 
 
-@bp.route('/login', methods=('GET', 'POST'))
-def login():
+@bp.route('/legacy_login', methods=('GET', 'POST'))
+def legacy_login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -50,7 +59,21 @@ def login():
             session['user_id'] = user.id
             return render_template('index.html')
 
-    return render_template('auth/login.html')
+    return render_template('auth/legacy_login.html')
+
+
+@bp.route('/login', methods=('GET', 'POST'))
+def login():
+    if request.method == 'POST':
+        if current_user.is_authenticated:
+            g.user = current_user
+            print(current_user)
+            return render_template('index.html')
+    else:
+        print(request)
+
+    return render_template('index.html')
+
 
 
 @bp.before_app_request
