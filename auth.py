@@ -71,6 +71,7 @@ def login():
             return render_template('index.html')
     else:
         print(request)
+        print(request.data)
 
     return render_template('index.html')
 
