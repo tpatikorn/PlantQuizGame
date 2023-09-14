@@ -89,6 +89,20 @@ class User(Base):
     active: Mapped[bool] = mapped_column(Boolean)
 
 
+class GoogleUser(Base):
+    __tablename__ = "users"
+    json_field_list = ["id", "email", "given_name", "family_name", "name", "picture"]
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    given_name: Mapped[str] = mapped_column(Text)
+    family_name: Mapped[str] = mapped_column(Text)
+    name: Mapped[str] = mapped_column(Text)
+    email: Mapped[str] = mapped_column(Text)
+    picture: Mapped[str] = mapped_column(Text)
+    admin: Mapped[bool] = mapped_column(Boolean)
+    active: Mapped[bool] = mapped_column(Boolean)
+
+
 if __name__ == "__main__":
     def to_test():
         from flask import g
@@ -97,6 +111,7 @@ if __name__ == "__main__":
         print(result)
         print(type(result[0]), result[0])
         print("done")
+
 
     from util.simple_main_test import test_this
 
