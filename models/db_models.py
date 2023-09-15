@@ -78,18 +78,6 @@ class TagType(Base):
 
 
 class User(Base):
-    __tablename__ = "legacy_users"
-    json_field_list = ["id", "username", "email", "admin"]
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    username: Mapped[str] = mapped_column(Text)
-    password: Mapped[str] = mapped_column(Text)
-    email: Mapped[str] = mapped_column(Text)
-    admin: Mapped[bool] = mapped_column(Boolean)
-    active: Mapped[bool] = mapped_column(Boolean)
-
-
-class GoogleUser(Base):
     __tablename__ = "users"
     json_field_list = ["id", "email", "given_name", "family_name", "name", "picture"]
 

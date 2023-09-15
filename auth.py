@@ -2,7 +2,7 @@ import os
 
 from authlib.integrations.flask_client import OAuth
 from flask import (
-    Blueprint, redirect, render_template, session, url_for
+    Blueprint, redirect, session, url_for
 )
 
 from managers import user_manager

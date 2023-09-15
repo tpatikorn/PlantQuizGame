@@ -10,6 +10,7 @@ from util.print_util import verbose_print
 
 # manage connection and cursor to DB
 # recommend using helper function instead of using the DBConnector class itself
+# it's designed for batched execution
 class DBConnector(object):
     __conn, __cur = None, None
 
