@@ -1,10 +1,18 @@
+import random
+
 from flask import g
-from sqlalchemy import select
+from sqlalchemy.sql.expression import select, func
 from models.db_models import Image, Tag, ImageTag
 
 
-def fetch_tags(conditions=None, limit=None) -> list[Tag]:
-    q = select(Tag)
+def set_db_seed(seed: float):
+    if seed is not None:
+        g.session.scalars(select(func.setseed(seed)))
+
+
+def fetch_tags(conditions=None, limit=None, seed: float = None) -> list[Tag]:
+    set_db_seed(seed)
+    q = select(Tag).order_by(func.random())
     if conditions is not None:
         q = q.where(conditions)
     if limit is not None:
@@ -17,8 +25,9 @@ def fetch_image_from_id(image_id: int) -> Image:
     return g.session.scalars(q).first()
 
 
-def fetch_images(conditions=None, limit=None) -> list[Image]:
-    q = select(Image).join(ImageTag).join(Tag).distinct()
+def fetch_images(conditions=None, limit: int = None, seed: float = None) -> list[Image]:
+    set_db_seed(seed)
+    q = select(Image).join(ImageTag).join(Tag).order_by(func.random())
     if conditions is not None:
         q = q.where(conditions)
     if limit is not None:
@@ -26,8 +35,9 @@ def fetch_images(conditions=None, limit=None) -> list[Image]:
     return [_ for _ in g.session.scalars(q).fetchall()]
 
 
-def fetch_images_with_tags(include_tags=None, exclude_tags=None, limit=None) -> list[Image]:
-    q = select(Image).join(ImageTag).join(Tag).distinct()
+def fetch_images_with_tags(include_tags=None, exclude_tags=None, limit=None, seed: float = None) -> list[Image]:
+    set_db_seed(seed)
+    q = select(Image).join(ImageTag).join(Tag).order_by(func.random())
     if include_tags is not None:
         if type(include_tags) == int:
             include_tags = [include_tags]
@@ -58,7 +68,7 @@ if __name__ == "__main__":
         print(type(result), type(result[0]), len(result))
         print(result[0].tags)
         print(fetch_image_from_id(7))
-        print(fetch_images_with_tags(include_tags=[20], exclude_tags=[21], limit=10))
+        print(fetch_images_with_tags(include_tags=[20], exclude_tags=[21], limit=10, seed=0.1))
         print(fetch_images_with_tags(include_tags=20, exclude_tags=21, limit=10))
 
 
