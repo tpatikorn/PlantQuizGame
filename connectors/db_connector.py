@@ -5,7 +5,7 @@ import psycopg2
 import psycopg2.extras
 from dotenv import load_dotenv
 
-from util.print_util import verbose_print
+from util.util import verbose_print
 
 
 # manage connection and cursor to DB

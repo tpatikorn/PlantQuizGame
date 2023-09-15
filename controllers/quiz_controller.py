@@ -1,12 +1,14 @@
+import random
+
 from managers.image_manager import fetch_images, fetch_tags, fetch_images_with_tags
-from random import sample, shuffle
 from models.db_models import Image, Tag
+from util.util import set_seed
 
 
 def random_question(num_choices=4):
-    correct_cat = sample(fetch_tags(limit=1), 1)[0]
-    image = sample(fetch_images(Tag.id == correct_cat.id), 1)[0]
-    similar_cats = fetch_tags(Tag.tag_type_id == correct_cat.tag_type_id, limit=num_choices + 1)
+    correct_cat = fetch_tags(limit=1)[0]
+    image = fetch_images(Tag.id == correct_cat.id, limit=1)[0]
+    similar_cats = fetch_tags(conditions=[Tag.tag_type_id == correct_cat.tag_type_id], limit=num_choices + 1)
     return image, similar_cats + [correct_cat]
 
 
@@ -17,28 +19,27 @@ def random_question(num_choices=4):
 # TODO: this is a terrible idea. The whole categories things should be changed
 def pick_target_from_main_category_id(treasure_cat_id: int) -> Tag:
     if treasure_cat_id == -1:
-        return sample(fetch_tags(Tag.tag_type_id == 2), 1)[0]
+        return fetch_tags(conditions=[Tag.tag_type_id == 2], limit=1)[0]
     elif treasure_cat_id is None:
-        return sample(fetch_tags(), 1)[0]
+        return fetch_tags(limit=1)[0]
     else:
-        return sample(fetch_tags(Tag.id == treasure_cat_id), 1)[0]
+        return fetch_tags(conditions=[Tag.id == treasure_cat_id], limit=1)[0]
 
 
-def image_treasure_hunt(size=25, treasure_count=5, main_category_id=-1):
+def image_treasure_hunt(size=25, treasure_count=5, main_category_id=-1, seed=None):
     treasure_cat_id = pick_target_from_main_category_id(main_category_id).id
-    print(treasure_cat_id)
-
-    treasures = fetch_images_with_tags(include_tags=treasure_cat_id, limit=treasure_count)
-    other = fetch_images_with_tags(exclude_tags=treasure_cat_id, limit=size - treasure_count)
+    treasures = fetch_images_with_tags(include_tags=treasure_cat_id, limit=treasure_count, seed=seed)
+    other = fetch_images_with_tags(exclude_tags=treasure_cat_id, limit=size - treasure_count, seed=seed)
     all_img = treasures + other
     answers = ([1] * treasure_count) + ([0] * (size - treasure_count))
     temp = list(zip(all_img, answers))
-    shuffle(temp)
+    random.seed(seed)
+    random.shuffle(temp)
     all_img, answers = zip(*temp)
     return all_img, answers
 
 
-def image_quick_draw(n_rounds=10, n_choices=2, treasure_cat_id=-1) -> tuple[list[list[Image]], list[list[int]]]:
+def image_quick_draw(n_rounds=10, n_choices=2, treasure_cat_id=-1, seed=None) -> tuple[list[list[Image]], list[list[int]]]:
     treasure_cat_id = pick_target_from_main_category_id(treasure_cat_id).id
     treasures = fetch_images_with_tags(include_tags=treasure_cat_id, limit=n_rounds)
     other = fetch_images_with_tags(exclude_tags=treasure_cat_id, limit=n_rounds * (n_choices - 1))
@@ -47,12 +48,14 @@ def image_quick_draw(n_rounds=10, n_choices=2, treasure_cat_id=-1) -> tuple[list
 
     for i in range(n_rounds):
         temp = list(zip(all_img[i], answers[i]))
-        shuffle(temp)
+        random.seed(seed)
+        random.shuffle(temp)
         all_img[i], answers[i] = zip(*temp)
         all_img[i], answers[i] = list(all_img[i]), list(answers[i])
 
     temp = list(zip(all_img, answers))
-    shuffle(temp)
+    random.seed(seed)
+    random.shuffle(temp)
     all_img, answers = zip(*temp)
     all_img, answers = list(all_img), list(answers)
     return all_img, answers
@@ -64,10 +67,11 @@ if __name__ == "__main__":
         print("Question:", q)
         print(*a, sep="\n")
 
-        durian = list(filter(lambda _: _.name == "durian", fetch_tags()))[0]
+        durian = fetch_tags(conditions=[Tag.name == "durian"])[0]
         print("drr", durian)
-        a, b = image_treasure_hunt(25, 5, durian.id)
+        a, b = image_treasure_hunt(25, 5, durian.id, seed=set_seed())
         print(a, b)
+
 
     def to_test2():
         from flask import g
