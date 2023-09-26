@@ -44,9 +44,9 @@
                 }
             }
 
-            function new_round(round) {
-                $(".round_" + (round - 1)).css("display", "none");
-                $(".round_" + round).css("display", "block");
+            function new_round() {
+                $(".round_" + (current_round - 1)).css("display", "none");
+                $(".round_" + current_round).css("display", "block");
                 $(".overlay").removeClass("correct").removeClass("incorrect");
             }
 
@@ -102,23 +102,23 @@
                 const n_choices = get_game_data("n_choices", parseInt);
                 // Check the keyCode or key for the specific keys you want to target (W, A, S, D)
                 if (event.keyCode === 81 || event.key === 'q') {
-                    $("#img_0").click();
+                    $("#img_0_"+current_round).click();
                 } else if (event.keyCode === 87 || event.key === 'w') {
-                    $("#img_1").click();
+                    $("#img_1_"+current_round).click();
                 } else if (event.keyCode === 69 || event.key === 'e') {
-                    $("#img_2").click();
+                    $("#img_2_"+current_round).click();
                 } else if (event.keyCode === 65 || event.key === 'a') {
-                    $("#img_3").click();
+                    $("#img_3_"+current_round).click();
                 } else if (event.keyCode === 83 || event.key === 's') {
-                    $("#img_4").click();
+                    $("#img_4_"+current_round).click();
                 } else if (event.keyCode === 68 || event.key === 'd') {
-                    $("#img_5").click();
+                    $("#img_5_"+current_round).click();
                 } else if (event.keyCode === 90 || event.key === 'z') {
-                    $("#img_6").click();
+                    $("#img_6_"+current_round).click();
                 } else if (event.keyCode === 88 || event.key === 'x') {
-                    $("#img_7").click();
+                    $("#img_7_"+current_round).click();
                 } else if (event.keyCode === 67 || event.key === 'c') {
-                    $("#img_8").click();
+                    $("#img_8_"+current_round).click();
                 }
             });
         });
