@@ -51,7 +51,7 @@ def quick_draw():
     seed = request.args.get("seed", default=set_seed())
 
     if target_type_name == "random":
-        target_type = fetch_tags(limit=1)[0]
+        target_type = fetch_tags(limit=1, seed=seed)[0]
     else:
         target_type = fetch_tags(conditions=[Tag.name == target_type_name])[0]
 
@@ -68,7 +68,7 @@ def chat():
     n_choices = max(min(n_choices, 9), 2)
     seed = request.args.get("seed", default=set_seed())
 
-    target_type = fetch_tags(limit=n_rounds)[0]
+    target_type = fetch_tags(limit=n_rounds, seed=seed)[0]
 
     img, correct_type_id = image_quick_draw(n_rounds, n_choices, target_type.id, seed=seed)
     all_img_src = [f"/images/{i.id}" for i_row in img for i in i_row]

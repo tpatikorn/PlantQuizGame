@@ -18,32 +18,42 @@
         $(function () {
             const n_rounds = get_game_data("n_rounds", parseInt);
             const n_choices = get_game_data("n_choices", parseInt);
-            const choice_location = [{% for i in [3,5,1,4,0,2,7,6,8] %}"#img_{{ i }}", {% endfor %}];
+            const choice_location = [{% for i in [3,5,1,4,0,2,7,6,8] %}"#img_{{ i }}_", {% endfor %}];
 
             $({{ all_img_src|safe }}).preload();
             const all_img = JSON.parse('{{ img|safe }}');
             const all_ans = JSON.parse('{{ ans|safe }}');
 
-            function new_round(round_id) {
-                for (let i = 0; i < n_choices; i++) {
-                    const this_round_img = all_img[round_id][i];
-                    const this_round_ans = all_ans[round_id][i];
-                    $(choice_location[i])
-                        .css("border-color", "transparent")
-                        .attr("src", "/images/" + this_round_img["id"])
-                        .data("correct", this_round_ans)
-                        .data("selected", false);
-                    $("#overlay_" + $(choice_location[i]).data("img_id"))
-                        .removeClass("correct")
-                        .removeClass("incorrect");
+            pre_load();
+
+            function pre_load() {
+                for (let round = 0; round < n_rounds; round++) {
+                    $(".round_" + round).css("display", "none");
+                    for (let i = 0; i < n_choices; i++) {
+                        const this_round_img = all_img[round][i];
+                        const this_round_ans = all_ans[round][i];
+                        $(choice_location[i] + round)
+                            .css("border-color", "transparent")
+                            .attr("src", "/images/" + this_round_img["id"])
+                            .data("correct", this_round_ans)
+                            .data("selected", false);
+                        $("#overlay_" + $(choice_location[i] + round).data("img_id"))
+                            .removeClass("correct")
+                            .removeClass("incorrect");
+                    }
                 }
+            }
+
+            function new_round(round) {
+                $(".round_" + (round - 1)).css("display", "none");
+                $(".round_" + round).css("display", "block");
+                $(".overlay").removeClass("correct").removeClass("incorrect");
             }
 
             $('#start').on('click', function () {
                 alert("เริ่ม!")
                 $("#start").prop("disabled", true).removeClass("btn-primary").add("btn-secondary");
                 $(".game_td_img").css("border", "transparent");
-                $(".quick_draw_img").show();
                 start_time = Date.now();
                 new_round(0);
 
@@ -136,9 +146,12 @@
             <div class="quick_draw_row">
                 {% for i in range(9) %}
                     <div class="quick_draw_column">
-                        <img id="img_{{ i }}" class="quick_draw_img" alt="img_{{ i }}" data-img_id="{{ i }}"
-                             src="{{ url_for('static', filename='blank.png') }}" data-correct='-1'/>
-                        <div class="overlay" id="overlay_{{ i }}"></div>
+                        {% for round in range(n_rounds) %}
+                            <img id="img_{{ i }}_{{ round }}" class="quick_draw_img round_{{ round }}"
+                                 alt="img_{{ i }}_{{ round }}" data-img_id="{{ i }}_{{ round }}"
+                                 src="{{ url_for('static', filename='blank.png') }}" data-correct='-1'/>
+                            <div class="overlay" id="overlay_{{ i }}_{{ round }}"></div>
+                        {% endfor %}
                     </div>
                 {% endfor %}
             </div>
