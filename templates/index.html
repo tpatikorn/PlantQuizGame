@@ -28,6 +28,14 @@
                 window.location.href = "/game/quick_draw?" + params.toString();
                 return false;
             });
+            $("#form_chat").submit(function() {
+                const params = new URLSearchParams();
+                $.each($("#form_chat").serializeArray(), function(i, field) {
+                    params.set(field.name, field.value);
+                });
+                window.location.href = "/game/chat?" +params.toString();
+                return false;
+            })
             $("#treasure_hunt_info").click(function () {
                 $('#result_modal').find('.modal-header > h5').text("ตัวอย่าง Treasure Hunt").end();
                 let modal = new bootstrap.Modal('#result_modal');
@@ -37,6 +45,13 @@
             });
             $("#quick_draw_info").click(function () {
                 $('#result_modal').find('.modal-header > h5').text("ตัวอย่าง Quick Draw").end();
+                let modal = new bootstrap.Modal('#result_modal');
+                modal.show();
+                $("#modal_body").html(`<img src="{{ url_for("static", filename="screenshots/quick_draw.png") }}"
+                style="max-width:90%" alt="">`);
+            });
+            $("#chat_info").click(function () {
+                $('#result_modal').find('.modal-header > h5').text("ตัวอย่าง Chat").end();
                 let modal = new bootstrap.Modal('#result_modal');
                 modal.show();
                 $("#modal_body").html(`<img src="{{ url_for("static", filename="screenshots/quick_draw.png") }}"
@@ -68,6 +83,11 @@
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="quick_draw_tab" data-bs-toggle="tab" data-bs-target="#quick_draw"
                     type="button" role="tab" aria-controls="profile" aria-selected="false">Quick Draw
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="chat_tab" data-bs-toggle="tab" data-bs-target="#chat"
+                    type="button" role="tab" aria-controls="profile" aria-selected="false">Chat
             </button>
         </li>
     </ul>
@@ -132,6 +152,39 @@
                 </div>
                 <button id="quick_draw_info" type="button" class="btn btn-primary" style="margin:1em"><i class="bi bi-info-circle"></i> ตัวอย่าง </button>
                 <button type="submit" class="btn btn-success" style="margin:1em"><i class="bi bi-play-circle"></i> Play!</button>
+            </form>
+        </div>
+
+
+        <div class="tab-pane fade" id="chat" role="tabpanel" aria-labelledby="chat_tab">
+            <form id="form_chat">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="target_type_label">ชนิดพืช</span>
+                    <select class="form-select" id="target_type" name="target_type"
+                            aria-label="target_type" aria-describedby="target_type_label">
+                        <option value="random">สุ่มชนิดพืช</option>
+                        {% for type in types %}
+                            <option value="{{ type.name }}"
+                                    {% if type.name == 'durian' %}selected{% endif %}>{{ type.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="n_rounds_label">จำนวนรอบ</span>
+                    <input name="n_rounds" type="text" class="form-control" value="10" min="1" max="100"
+                           aria-label="จำนวนรอบ" aria-describedby="n_rounds_label">
+                </div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="n_col_label">จำนวนตัวเลือก</span>
+                    <input name="n_choices" type="number" class="form-control" value="2" min="2" max="9"
+                           aria-label="จำนวนตัวเลือก" aria-describedby="n_col_label">
+                </div>
+                <button id="quick_draw_info" type="button" class="btn btn-primary" style="margin:1em"><i class="bi bi-info-circle"></i> ตัวอย่าง </button>
+                {% if session.get('user') %}
+                    <button type="submit" class="btn btn-success" style="margin:1em"><i class="bi bi-play-circle"></i> Play!</button>
+                {% else %}
+                    <span class="badge bg-danger">เกมนี้ต้อง login ก่อน</span>
+                {% endif %}
             </form>
         </div>
     </div>

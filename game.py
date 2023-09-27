@@ -1,4 +1,4 @@
-from flask import Blueprint, request, render_template
+from flask import Blueprint, request, render_template, session, redirect
 from controllers.quiz_controller import image_treasure_hunt, image_quick_draw
 from managers.image_manager import fetch_tags
 from models.db_models import Tag
@@ -63,15 +63,23 @@ def quick_draw():
 
 @bp.route('/chat', methods=['GET'])
 def chat():
+    try:
+        session['user']
+    except KeyError:
+        return redirect("/")
     n_rounds = int(request.args.get("n_rounds", default=10))
     n_choices = int(request.args.get("n_choices", default=2))
     n_choices = max(min(n_choices, 9), 2)
+    target_type_name = request.args.get("target_type", default="durian")
     seed = request.args.get("seed", default=set_seed())
 
-    target_type = fetch_tags(limit=n_rounds, seed=seed)[0]
+    if target_type_name == "random":
+        target_type = fetch_tags(limit=1, seed=seed)[0]
+    else:
+        target_type = fetch_tags(conditions=[Tag.name == target_type_name])[0]
 
-    img, correct_type_id = image_quick_draw(n_rounds, n_choices, target_type.id, seed=seed)
+    img, ans = image_quick_draw(n_rounds, n_choices, target_type.id, seed=seed)
     all_img_src = [f"/images/{i.id}" for i_row in img for i in i_row]
-    correct_choices = [[1 if correct_type_id in [t.id for t in i.tags] else 0 for i in i_row] for i_row in img]
-    return render_template("chat.html", img=img, correct_choices=correct_choices, all_img_src=all_img_src,
+
+    return render_template("chat.html", img=img, ans=ans, all_img_src=all_img_src,
                            n_rounds=n_rounds, target_type=target_type.name, n_choices=n_choices)

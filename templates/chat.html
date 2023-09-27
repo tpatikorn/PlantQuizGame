@@ -8,7 +8,6 @@
     <meta id="game_data"
           data-n_choices="{{ n_choices }}"
           data-n_rounds="{{ n_rounds }}"
-          data-correct_choices="{{ correct_choices }}"
           data-room=""
     >
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
@@ -24,31 +23,42 @@
         $(function () {
             const n_rounds = get_game_data("n_rounds", parseInt);
             const n_choices = get_game_data("n_choices", parseInt);
-            const correct_choices = get_game_data("correct_choices");
-            const choice_location = [{% for i in [3,5,1,4,0,2,7,6,8] %}"#img_{{ i }}", {% endfor %}];
+            const choice_location = [{% for i in [3,5,1,4,0,2,7,6,8] %}"#img_{{ i }}_", {% endfor %}];
 
             $({{ all_img_src|safe }}).preload();
             const all_img = JSON.parse('{{ img|safe }}');
+            const all_ans = JSON.parse('{{ ans|safe }}');
 
-            function new_round(round_id) {
-                for (let i = 0; i < n_choices; i++) {
-                    const this_round_img = all_img[round_id][i];
-                    $(choice_location[i])
-                        .css("border-color", "transparent")
-                        .attr("src", "/images/" + this_round_img["id"])
-                        .data("correct", correct_choices[round_id][i])
-                        .data("selected", false);
-                    $("#overlay_" + $(choice_location[i]).data("img_id"))
-                        .removeClass("correct")
-                        .removeClass("incorrect");
+            pre_load();
+
+            function pre_load() {
+                for (let round = 0; round < n_rounds; round++) {
+                    $(".round_" + round).css("display", "none");
+                    for (let i = 0; i < n_choices; i++) {
+                        const this_round_img = all_img[round][i];
+                        const this_round_ans = all_ans[round][i];
+                        $(choice_location[i] + round)
+                            .css("border-color", "transparent")
+                            .attr("src", "/images/" + this_round_img["id"])
+                            .data("correct", this_round_ans)
+                            .data("selected", false);
+                        $("#overlay_" + $(choice_location[i] + round).data("img_id"))
+                            .removeClass("correct")
+                            .removeClass("incorrect");
+                    }
                 }
+            }
+
+            function new_round() {
+                $(".round_" + (current_round - 1)).css("display", "none");
+                $(".round_" + current_round).css("display", "block");
+                $(".overlay").removeClass("correct").removeClass("incorrect");
             }
 
             $('#start').on('click', function () {
                 alert("เริ่ม!")
                 $("#start").prop("disabled", true).removeClass("btn-primary").add("btn-secondary");
                 $(".game_td_img").css("border", "transparent");
-                $(".gunner_img").show();
                 start_time = Date.now();
                 new_round(0);
 
@@ -60,7 +70,7 @@
                 if (!playing) {
                     return;
                 }
-                if (!$(this).data("selected")) {
+                if (!$(this).data("selected") && ($(this).data("correct") !== -1)) {
                     $(this).data("selected", true);
                     const correctness = $(this).data("correct");
                     if (correctness === 1) {
@@ -93,6 +103,29 @@
                 }
             });
 
+            $(document).on('keydown', function (event) {
+                const n_choices = get_game_data("n_choices", parseInt);
+                // Check the keyCode or key for the specific keys you want to target (W, A, S, D)
+                if (event.keyCode === 81 || event.key === 'q') {
+                    $("#img_0_" + current_round).click();
+                } else if (event.keyCode === 87 || event.key === 'w') {
+                    $("#img_1_" + current_round).click();
+                } else if (event.keyCode === 69 || event.key === 'e') {
+                    $("#img_2_" + current_round).click();
+                } else if (event.keyCode === 65 || event.key === 'a') {
+                    $("#img_3_" + current_round).click();
+                } else if (event.keyCode === 83 || event.key === 's') {
+                    $("#img_4_" + current_round).click();
+                } else if (event.keyCode === 68 || event.key === 'd') {
+                    $("#img_5_" + current_round).click();
+                } else if (event.keyCode === 90 || event.key === 'z') {
+                    $("#img_6_" + current_round).click();
+                } else if (event.keyCode === 88 || event.key === 'x') {
+                    $("#img_7_" + current_round).click();
+                } else if (event.keyCode === 67 || event.key === 'c') {
+                    $("#img_8_" + current_round).click();
+                }
+            });
 
             let socket = io();
 
@@ -101,7 +134,7 @@
                 const username = data[0];
                 const message = data[1];
                 let appendage;
-                if (username === "{{ g.user.username }}") {
+                if (username === "{{ session['user'].name }}") {
                     appendage = `<li class="clearfix"><div class="message-data"><span class="message-data-name"><i class="fa fa-circle you"></i>${username}</span></div><div class="message you-message">${message}</div></li>`;
                 } else {
                     appendage = `<li class="clearfix"><div class="message-data align-right"><span class="message-data-name">${username}</span> <i class="fa fa-circle me"></i></div><div class="message me-message float-right">${message}</div></li>`;
@@ -119,7 +152,7 @@
             });
             $("#chat_join").on("click", function () {
                 let $chat_join_input = $("#chat_join_input");
-                socket.emit('join', ["{{ g.user.username }}", $chat_join_input.val()]);
+                socket.emit('join', ["{{ session['user'].name }}", $chat_join_input.val()]);
                 $("#chat_join").attr("disabled", true).addClass("btn-secondary").removeClass("btn-primary");
                 $chat_join_input.attr("disabled", true);
                 $("#chat_send_input").attr("disabled", false);
@@ -127,7 +160,7 @@
             });
             $("#chat_send").on("click", function () {
                 let $chat_input = $("#chat_send_input");
-                socket.emit('chat', ["{{ g.user.username }}", $chat_input.val(), get_game_data("room")]);
+                socket.emit('chat', ["{{ session['user'].name }}", $chat_input.val(), get_game_data("room")]);
                 $chat_input.val('');
             });
         });
@@ -156,9 +189,12 @@
                 <div class="quick_draw_row">
                     {% for i in range(9) %}
                         <div class="quick_draw_column">
-                            <img id="img_{{ i }}" class="quick_draw_img" alt="img_{{ i }}" data-img_id="{{ i }}"
-                                 src="{{ url_for('static', filename='blank.png') }}"/>
-                            <div class="overlay" id="overlay_{{ i }}"></div>
+                            {% for round in range(n_rounds) %}
+                                <img id="img_{{ i }}_{{ round }}" class="quick_draw_img round_{{ round }}"
+                                     alt="img_{{ i }}_{{ round }}" data-img_id="{{ i }}_{{ round }}"
+                                     src="{{ url_for('static', filename='blank.png') }}" data-correct='-1'/>
+                                <div class="overlay" id="overlay_{{ i }}_{{ round }}"></div>
+                            {% endfor %}
                         </div>
                     {% endfor %}
                 </div>
