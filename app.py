@@ -22,6 +22,10 @@ def create_app(debug=False):
     def index():
         return render_template("index.html", types=fetch_tags())
 
+    @app.route('/test')
+    def test():
+        return render_template("test.html")
+
     # sanity check route
     @app.route('/ping', methods=['GET'])
     def ping_pong():

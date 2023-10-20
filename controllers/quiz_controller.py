@@ -39,8 +39,32 @@ def image_treasure_hunt(size=25, treasure_count=5, main_category_id=-1, seed=Non
     return all_img, answers
 
 
-def image_quick_draw(n_rounds=10, n_choices=2, treasure_cat_id=-1, seed=None) -> tuple[list[list[Image]], list[list[int]]]:
+def image_quick_draw(n_rounds=10, n_choices=2, treasure_cat_id=-1, seed=None) -> tuple[
+    list[list[Image]], list[list[int]]]:
     treasure_cat_id = pick_target_from_main_category_id(treasure_cat_id).id
+    treasures = fetch_images_with_tags(include_tags=treasure_cat_id, limit=n_rounds, seed=seed)
+    other = fetch_images_with_tags(exclude_tags=treasure_cat_id, limit=n_rounds * (n_choices - 1), seed=seed)
+    all_img = [[t] + [other.pop() for _ in range(n_choices - 1)] for t in treasures]
+    answers = [[1] + ([0] * (n_choices - 1))] * n_rounds
+
+    for i in range(n_rounds):
+        temp = list(zip(all_img[i], answers[i]))
+        random.seed(seed)
+        random.shuffle(temp)
+        all_img[i], answers[i] = zip(*temp)
+        all_img[i], answers[i] = list(all_img[i]), list(answers[i])
+
+    temp = list(zip(all_img, answers))
+    random.seed(seed)
+    random.shuffle(temp)
+    all_img, answers = zip(*temp)
+    all_img, answers = list(all_img), list(answers)
+    return all_img, answers
+
+
+def image_chat(n_rounds=10, n_choices=2, seed=None) -> tuple[list[list[Image]], list[list[int]]]:
+    target_type = fetch_tags(limit=1, seed=seed)[0]
+    treasure_cat_id = pick_target_from_main_category_id(target_type.id).id
     treasures = fetch_images_with_tags(include_tags=treasure_cat_id, limit=n_rounds, seed=seed)
     other = fetch_images_with_tags(exclude_tags=treasure_cat_id, limit=n_rounds * (n_choices - 1), seed=seed)
     all_img = [[t] + [other.pop() for _ in range(n_choices - 1)] for t in treasures]
