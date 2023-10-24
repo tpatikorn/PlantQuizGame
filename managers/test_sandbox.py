@@ -4,8 +4,8 @@ import os
 
 class SandboxPython:
 
-    def __init__(self, additional_restricted_functions=None, additional_restricted_imports=None,
-                 base_restricted_functions=None, base_restricted_imports=None):
+    def __init__(self, base_restricted_functions=None, base_restricted_imports=None,
+                 additional_restricted_functions=None, additional_restricted_imports=None):
 
         self.restricted_functions = base_restricted_functions or ['open', 'input']
         if additional_restricted_functions is not None:
@@ -32,28 +32,25 @@ class SandboxPython:
         for fn in self.restricted_functions:
             restricted_globals[fn] = self.construct_function(fn)
         # Create a restricted environment
-        try:
-            test_passed = []
-            test_failed = []
-            test_raised = []
-            for test, expected_output in zip(test_inputs, test_outputs):
-                try:
-                    # Compile and execute the user's code within the restricted environment
-                    exec(code, restricted_globals, restricted_locals)
-                    # Execute the 'main' function with the provided arguments
-                    main_function = restricted_locals['main']
-                    if main_function(*test) == expected_output:
-                        test_passed.append(test)
-                    else:
-                        test_failed.append(test)
-                except Exception as e:
-                    if verbose:
-                        print(e)
-                    test_raised.append(test)
-            return test_passed, test_failed, test_raised
-
-        except Exception as e:
-            print("Error executing user code:", e)
+        test_passed = []
+        test_failed = []
+        test_raised = []
+        for test, expected_output in zip(test_inputs, test_outputs):
+            try:
+                # Compile and execute the user's code within the restricted environment
+                exec(code, restricted_globals, restricted_locals)
+                # Execute the 'main' function with the provided arguments
+                main_function = restricted_locals['main']
+                if main_function(*test) == expected_output:
+                    test_passed.append(test)
+                else:
+                    test_failed.append(test)
+            except Exception:
+                if verbose:
+                    import traceback
+                    print(traceback.format_exc())
+                test_raised.append(test)
+        return test_passed, test_failed, test_raised
 
 
 if __name__ == "__main__":

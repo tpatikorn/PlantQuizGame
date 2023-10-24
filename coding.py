@@ -21,6 +21,6 @@ def code_test():
     all_outputs = [float(test_case.test_outputs) for test_case in test_cases]
     print(all_inputs, all_outputs)
     sb = SandboxPython()
-    result = sb.run(code, all_inputs, all_outputs)
+    result = sb.run(code, all_inputs, all_outputs, verbose=True)
     print(code, result)
     return jsonify(result)

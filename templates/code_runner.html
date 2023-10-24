@@ -5,10 +5,39 @@
 {% endblock %}
 
 {% block content %}
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.31.0/ace.min.js" type="text/javascript"
+            charset="utf-8"></script>
+    <style media="screen">
+        #editor {
+            width: 500px;
+            height: 300px;
+        }
+
+    </style>
     <script>
+
+        const problems = {};
+        {% for p in problems %}
+            problems['{{ p.id }}'] = JSON.parse(`{{ p|safe }}`);
+        {% endfor %}
+
         $(function () {
+            $("#problem_selector").on("change", function () {
+                const this_problem = problems[$("#problem_selector").val()];
+                const editor = ace.edit("editor");
+                const in_fm = this_problem['input_format'];
+                const out_fm = this_problem['output_format'];
+                let code = `def main(${in_fm}) -> ${out_fm}:\n    # your code here\n    return 0`
+                editor.setValue(code);
+                editor.clearSelection();
+                $("#description").html(this_problem['description']);
+            });
+            $("#problem_selector").change();
+
             $("#validate").on("click", function () {
-                const body = JSON.stringify({"problem_id": $("#problem_selector").val(), "code": $("#code").val()});
+                const editor = ace.edit("editor");
+                const body = JSON.stringify({"problem_id": $("#problem_selector").val(), "code": editor.getValue(0)});
                 console.log(body);
                 $.ajax({
                     url: "/coding/code_test",
@@ -16,8 +45,9 @@
                     data: body,
                     contentType: "application/json",
                     success: function (data) {
-                        alert(`${data[0].length},${data[1].length},${data[2].length}`);
-                        console.log(data);
+                        $("#correct").html(data[0].length);
+                        $("#incorrect").html(data[1].length);
+                        $("#error").html(data[2].length);
                     },
                     error: function (xhr) {
                         console.log(xhr);
@@ -31,8 +61,21 @@
         {% for p in problems %}
             <option value="{{ p.id }}">{{ p.name }}</option>
         {% endfor %}
-    </select>
-    </select>
-    <textarea name="code" id="code" rows="10" style="width:600px"></textarea><br>
+    </select> <br>
+    <span>description: </span><span id="description"></span><br>
+    <h3><span class="badge bg-success">correct
+        <span id="correct" class="badge bg-light text-dark">0</span></span>
+    <span class="badge bg-danger">incorrect
+        <span id="incorrect" class="badge bg-light text-dark">0</span></span>
+    <span class="badge bg-warning">error
+        <span id="error" class="badge bg-light text-dark">0</span></span></h3>
+    <div id="editor">
+    </div>
+    <script>
+        var editor = ace.edit("editor");
+        editor.setTheme("ace/theme/monokai");
+        editor.session.setMode("ace/mode/python");
+    </script>
+
     <input type="submit" value="validate" id="validate">
 {% endblock %}
