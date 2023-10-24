@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block header %}
+    <h1>{% block title %}CODE{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <script>
+        $(function () {
+            $("#validate").on("click", function () {
+                const body = JSON.stringify({"code": $("#code").val()});
+                console.log(body);
+                $.ajax({
+                    url: "/code_test",
+                    type: "POST",
+                    data: body,
+                    contentType: "application/json",
+                    success: function (data) {
+                        alert("");
+                        console.log(data);
+                    },
+                    error: function (xhr) {
+                        console.log(xhr);
+                    }
+                });
+            });
+        });
+
+    </script>
+    <textarea name="code" id="code"></textarea>
+    <input type="submit" value="validate" id="validate">
+{% endblock %}

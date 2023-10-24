@@ -91,6 +91,46 @@ class User(Base):
     active: Mapped[bool] = mapped_column(Boolean)
 
 
+class Language(Base):
+    __tablename__ = "languages"
+    __table_args__ = {"schema": "coding"}
+    json_field_list = ["id", "name", "active"]
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(Text)
+    active: Mapped[bool] = mapped_column(Boolean)
+    problems: Mapped[List["Problem"]] = relationship(back_populates="language", repr=False)
+
+
+class Problem(Base):
+    __tablename__ = "problems"
+    __table_args__ = {"schema": "coding"}
+    json_field_list = ["id", "name", "description", "language_id", "input_format", "output_format", "active"]
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(Text)
+    description: Mapped[str] = mapped_column(Text)
+    language_id: Mapped[int] = mapped_column(ForeignKey("coding.languages.id"))
+    input_format: Mapped[str] = mapped_column(Text)
+    output_format: Mapped[str] = mapped_column(Text)
+    active: Mapped[bool] = mapped_column(Boolean)
+    language: Mapped["Language"] = relationship(back_populates="problems", repr=False)
+    test_cases: Mapped[List["TestCase"]] = relationship(back_populates="problem", repr=False)
+
+
+class TestCase(Base):
+    __tablename__ = "test_cases"
+    __table_args__ = {"schema": "coding"}
+    json_field_list = ["id", "problem_id", "test_inputs", "test_outputs", "active"]
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    problem_id: Mapped[int] = mapped_column(ForeignKey("coding.problems.id"))
+    test_inputs: Mapped[str] = mapped_column(Text)
+    test_outputs: Mapped[str] = mapped_column(Text)
+    active: Mapped[bool] = mapped_column(Boolean)
+    problem: Mapped["Problem"] = relationship(back_populates="test_cases", repr=False)
+
+
 if __name__ == "__main__":
     def to_test():
         from flask import g
@@ -100,6 +140,9 @@ if __name__ == "__main__":
         print(type(result[0]), result[0])
         print("done")
 
+        q = select(TestCase).join(Problem).join(Language).where(Problem.name == "sum")
+        result = g.session.scalars(q).fetchall()
+        print(result)
 
     from util.simple_main_test import test_this
 

@@ -39,15 +39,16 @@ class SandboxPython:
             for test, expected_output in zip(tests, expected_outputs):
                 try:
                     # Compile and execute the user's code within the restricted environment
-                    exec(user_code, restricted_globals, restricted_locals)
+                    exec(code, restricted_globals, restricted_locals)
                     # Execute the 'main' function with the provided arguments
                     main_function = restricted_locals['main']
-                    if main_function(*args) == expected_output:
-                        test_passed.append(args)
+                    if main_function(*test) == expected_output:
+                        test_passed.append(test)
                     else:
-                        test_failed.append(args)
+                        test_failed.append(test)
                 except Exception as e:
-                    test_raised.append(args)
+                    print(e)
+                    test_raised.append(test)
             return test_passed, test_failed, test_raised
 
         except Exception as e:
@@ -57,23 +58,23 @@ class SandboxPython:
 if __name__ == "__main__":
     sb = SandboxPython()
     # Python code as text
-    user_code = """
+    test_code1 = """
 def main(arg):
     with open("app.py") as p:
         for l in p:
             print(l)
         return arg * 2
     """
-    passed, failed, raised = sb.run(user_code, tests=[[5], [6], [7]], expected_outputs=[10, 12, 14])
+    passed, failed, raised = sb.run(test_code1, tests=[[5], [6], [7]], expected_outputs=[10, 12, 14])
     print(passed)
     print(failed)
     print(raised)
-    user_code = """
+    test_code2 = """
 def main(arg):
     return arg * 2
     """
     sb2 = SandboxPython()
-    passed, failed, raised = sb2.run(user_code, tests=[[5], [6], [7]], expected_outputs=[10, 12, 14])
+    passed, failed, raised = sb2.run(test_code2, tests=[[5], [6], [7]], expected_outputs=[10, 12, 14])
     print(passed)
     print(failed)
     print(raised)
