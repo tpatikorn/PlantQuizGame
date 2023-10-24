@@ -1,10 +1,6 @@
 import os
-
 from authlib.integrations.flask_client import OAuth
-from flask import (
-    Blueprint, redirect, session, url_for
-)
-
+from flask import Blueprint, redirect, session, url_for
 from managers import user_manager
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')

@@ -8,15 +8,15 @@
     <script>
         $(function () {
             $("#validate").on("click", function () {
-                const body = JSON.stringify({"code": $("#code").val()});
+                const body = JSON.stringify({"problem_id": $("#problem_selector").val(), "code": $("#code").val()});
                 console.log(body);
                 $.ajax({
-                    url: "/code_test",
+                    url: "/coding/code_test",
                     type: "POST",
                     data: body,
                     contentType: "application/json",
                     success: function (data) {
-                        alert("");
+                        alert(`${data[0].length},${data[1].length},${data[2].length}`);
                         console.log(data);
                     },
                     error: function (xhr) {
@@ -27,6 +27,12 @@
         });
 
     </script>
-    <textarea name="code" id="code"></textarea>
+    <select id="problem_selector">
+        {% for p in problems %}
+            <option value="{{ p.id }}">{{ p.name }}</option>
+        {% endfor %}
+    </select>
+    </select>
+    <textarea name="code" id="code" rows="10" style="width:600px"></textarea><br>
     <input type="submit" value="validate" id="validate">
 {% endblock %}

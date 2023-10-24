@@ -22,20 +22,6 @@ def create_app(debug=False):
     def index():
         return render_template("index.html", types=fetch_tags())
 
-    @app.route('/code_runner')
-    def code_runner():
-        return render_template("code_runner.html")
-
-    @app.route('/code_test', methods=["POST"])
-    def code_test():
-        from flask import request
-        from managers.test_sandbox import SandboxPython
-        sb = SandboxPython()
-        code = request.get_json()["code"]
-        result = sb.run(code, [[5]], [10])
-        print(code, result)
-        return jsonify(result)
-
     # sanity check route
     @app.route('/ping', methods=['GET'])
     def ping_pong():

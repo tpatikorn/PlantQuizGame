@@ -26,7 +26,7 @@ class SandboxPython:
             raise ImportError(f"Import of '{name}' module is not allowed")
         return __import__(name, globals, locals, fromlist, level)
 
-    def run(self, code, tests, expected_outputs):
+    def run(self, code, test_inputs, test_outputs, verbose=False):
         restricted_globals = {'__builtins__': {}}
         restricted_locals = {'__builtins__': {}}
         for fn in self.restricted_functions:
@@ -36,7 +36,7 @@ class SandboxPython:
             test_passed = []
             test_failed = []
             test_raised = []
-            for test, expected_output in zip(tests, expected_outputs):
+            for test, expected_output in zip(test_inputs, test_outputs):
                 try:
                     # Compile and execute the user's code within the restricted environment
                     exec(code, restricted_globals, restricted_locals)
@@ -47,7 +47,8 @@ class SandboxPython:
                     else:
                         test_failed.append(test)
                 except Exception as e:
-                    print(e)
+                    if verbose:
+                        print(e)
                     test_raised.append(test)
             return test_passed, test_failed, test_raised
 
@@ -65,7 +66,7 @@ def main(arg):
             print(l)
         return arg * 2
     """
-    passed, failed, raised = sb.run(test_code1, tests=[[5], [6], [7]], expected_outputs=[10, 12, 14])
+    passed, failed, raised = sb.run(test_code1, test_inputs=[[5], [6], [7]], test_outputs=[10, 12, 14])
     print(passed)
     print(failed)
     print(raised)
@@ -74,7 +75,7 @@ def main(arg):
     return arg * 2
     """
     sb2 = SandboxPython()
-    passed, failed, raised = sb2.run(test_code2, tests=[[5], [6], [7]], expected_outputs=[10, 12, 14])
+    passed, failed, raised = sb2.run(test_code2, test_inputs=[[5], [6], [7]], test_outputs=[10, 12, 14])
     print(passed)
     print(failed)
     print(raised)

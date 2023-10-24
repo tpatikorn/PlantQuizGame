@@ -52,9 +52,11 @@ if __name__ == "__main__":
 
     import auth
     import game
+    import coding
 
     this_app.register_blueprint(auth.bp)
     this_app.register_blueprint(game.bp)
+    this_app.register_blueprint(coding.bp)
 
     auth.oauth.init_app(this_app)
 
