@@ -14,6 +14,18 @@
             height: 300px;
         }
 
+        .passed {
+            color: green
+        }
+
+        .failed {
+            color: red
+        }
+
+        .raised {
+            color: white;
+            background-color: red
+        }
     </style>
     <script>
 
@@ -23,21 +35,60 @@
         {% endfor %}
 
         $(function () {
-            $("#problem_selector").on("change", function () {
-                const this_problem = problems[$("#problem_selector").val()];
+            let $problemSelector = $("#problem_selector");
+            $problemSelector.on("change", function () {
+                const this_problem = problems[$problemSelector.val()];
                 const editor = ace.edit("editor");
                 const in_fm = this_problem['input_format'];
                 const out_fm = this_problem['output_format'];
                 let code = `def main(${in_fm}) -> ${out_fm}:\n    # your code here\n    return 0`
                 editor.setValue(code);
                 editor.clearSelection();
-                $("#description").html(this_problem['description']);
+                $("#description_th").html(this_problem['description_th']);
+                $("#description_en").html(this_problem['description_en']);
             });
-            $("#problem_selector").change();
+            $problemSelector.change();
+
+            function update_feedback(data) {
+                let results = data[0]
+                let passed_hidden = data[1];
+                let failed_hidden = data[2];
+                let raised_hidden = data[3];
+                let passed = 0;
+                let failed = 0;
+                let raised = 0;
+
+                const $result_table = $("#results tbody");
+                $result_table.empty();
+                for (const test of results) {
+                    switch (test[1]) {
+                        case "passed":
+                            passed++;
+                            passed_hidden--;
+                            break
+                        case "failed":
+                            failed++;
+                            failed_hidden--;
+                            break
+                        case "raised":
+                            raised++;
+                            raised_hidden--;
+                            break
+                    }
+                    $result_table.append(`<tr class='${test[1]}'><td>${test[0]}</td><td>${test[1]}</td><td>${test[2]}</td></tr>`);
+                }
+
+                $("#passed_messages").html(`You passed ${passed} test(s) and ${passed_hidden} hidden test(s)`);
+                $("#failed_messages").html(`You failed ${failed} test(s) and ${failed_hidden} hidden test(s)`);
+                $("#raised_messages").html(`You failed ${raised} test(s) and ${raised_hidden} hidden test(s) with errors`);
+                $("#passed").html(passed);
+                $("#failed").html(failed);
+                $("#raised").html(raised);
+            }
 
             $("#validate").on("click", function () {
                 const editor = ace.edit("editor");
-                const body = JSON.stringify({"problem_id": $("#problem_selector").val(), "code": editor.getValue(0)});
+                const body = JSON.stringify({"problem_id": $problemSelector.val(), "code": editor.getValue(0)});
                 console.log(body);
                 $.ajax({
                     url: "/coding/code_test",
@@ -45,9 +96,8 @@
                     data: body,
                     contentType: "application/json",
                     success: function (data) {
-                        $("#correct").html(data[0].length);
-                        $("#incorrect").html(data[1].length);
-                        $("#error").html(data[2].length);
+                        console.log(data);
+                        update_feedback(data);
                     },
                     error: function (xhr) {
                         console.log(xhr);
@@ -57,18 +107,20 @@
         });
 
     </script>
-    <select id="problem_selector">
-        {% for p in problems %}
-            <option value="{{ p.id }}">{{ p.name }}</option>
-        {% endfor %}
-    </select> <br>
-    <span>description: </span><span id="description"></span><br>
+    <label for="problem_selector">Select the problem: </label><select id="problem_selector">
+    {% for p in problems %}
+        <option value="{{ p.id }}">{{ p.name }}</option>
+    {% endfor %}
+</select> <br>
+    <span>description: </span><br>
+    <span id="description_th"></span><br>
+    <span id="description_en"></span><br>
     <h3><span class="badge bg-success">correct
-        <span id="correct" class="badge bg-light text-dark">0</span></span>
-    <span class="badge bg-danger">incorrect
-        <span id="incorrect" class="badge bg-light text-dark">0</span></span>
-    <span class="badge bg-warning">error
-        <span id="error" class="badge bg-light text-dark">0</span></span></h3>
+        <span id="passed" class="badge bg-light text-dark">0</span></span>
+        <span class="badge bg-danger">incorrect
+        <span id="failed" class="badge bg-light text-dark">0</span></span>
+        <span class="badge bg-warning">error
+        <span id="raised" class="badge bg-light text-dark">0</span></span></h3>
     <div id="editor">
     </div>
     <script>
@@ -78,4 +130,23 @@
     </script>
 
     <input type="submit" value="validate" id="validate">
+    <div id="feedback">
+        <h3>Feedback</h3>
+        <table id="results" class="table">
+            <thead>
+            <tr>
+                <th scope="col">input</th>
+                <th scope="col">result</th>
+                <th scope="col">note</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+
+        <span id="passed_messages" class="passed"></span><br>
+        <span id="failed_messages" class="failed"></span><br>
+        <span id="raised_messages" class="raised"></span><br>
+    </div>
 {% endblock %}

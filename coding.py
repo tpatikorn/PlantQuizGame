@@ -17,10 +17,7 @@ def code_test():
     body = request.get_json()
     code = body["code"]
     test_cases = coding_manager.find_test_cases(body["problem_id"])
-    all_inputs = [[float(_) for _ in test_case.test_inputs.split(",")] for test_case in test_cases]
-    all_outputs = [float(test_case.test_outputs) for test_case in test_cases]
-    print(all_inputs, all_outputs)
+    print(test_cases)
     sb = SandboxPython()
-    result = sb.run(code, all_inputs, all_outputs, verbose=True)
-    print(code, result)
+    result = sb.run(code, test_cases, verbose=True)
     return jsonify(result)

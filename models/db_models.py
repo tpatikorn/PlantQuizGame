@@ -105,11 +105,12 @@ class Language(Base):
 class Problem(Base):
     __tablename__ = "problems"
     __table_args__ = {"schema": "coding"}
-    json_field_list = ["id", "name", "description", "language_id", "input_format", "output_format", "active"]
+    json_field_list = ["id", "name", "description_th", "description_en", "language_id", "input_format", "output_format", "active"]
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(Text)
-    description: Mapped[str] = mapped_column(Text)
+    description_th: Mapped[str] = mapped_column(Text)
+    description_en: Mapped[str] = mapped_column(Text)
     language_id: Mapped[int] = mapped_column(ForeignKey("coding.languages.id"))
     input_format: Mapped[str] = mapped_column(Text)
     output_format: Mapped[str] = mapped_column(Text)
@@ -121,12 +122,13 @@ class Problem(Base):
 class TestCase(Base):
     __tablename__ = "test_cases"
     __table_args__ = {"schema": "coding"}
-    json_field_list = ["id", "problem_id", "test_inputs", "test_outputs", "active"]
+    json_field_list = ["id", "problem_id", "test_inputs", "test_outputs", "public", "active"]
 
     id: Mapped[int] = mapped_column(primary_key=True)
     problem_id: Mapped[int] = mapped_column(ForeignKey("coding.problems.id"))
     test_inputs: Mapped[str] = mapped_column(Text)
     test_outputs: Mapped[str] = mapped_column(Text)
+    public: Mapped[bool] = mapped_column(Boolean)
     active: Mapped[bool] = mapped_column(Boolean)
     problem: Mapped["Problem"] = relationship(back_populates="test_cases", repr=False)
 

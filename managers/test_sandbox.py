@@ -1,5 +1,17 @@
 import tempfile
 import os
+from typing import List
+
+from models.db_models import TestCase
+
+
+def check_equivalent(a: any, b: any, expected_type: type = float, tol: float = 1e-6):
+    a = expected_type(a)
+    b = expected_type(b)
+    if expected_type == float:
+        return abs(a - b) < tol
+    else:
+        return a == b
 
 
 class SandboxPython:
@@ -21,36 +33,45 @@ class SandboxPython:
     def raise_exception(self, func_name, *a):
         raise RuntimeError(f"can't call this function! '{func_name}' with arguments '{','.join(a)}'")
 
-    def custom_import(self, name, globals=None, locals=None, fromlist=(), level=0):
+    def custom_import(self, name, custom_globals=None, custom_locals=None, fromlist=(), level=0):
         if name in self.restricted_imports:
             raise ImportError(f"Import of '{name}' module is not allowed")
-        return __import__(name, globals, locals, fromlist, level)
+        return __import__(name, custom_globals, custom_locals, fromlist, level)
 
-    def run(self, code, test_inputs, test_outputs, verbose=False):
+    def run(self, code: str, test_cases: List[TestCase], verbose=False):
         restricted_globals = {'__builtins__': {}}
         restricted_locals = {'__builtins__': {}}
         for fn in self.restricted_functions:
             restricted_globals[fn] = self.construct_function(fn)
         # Create a restricted environment
-        test_passed = []
-        test_failed = []
-        test_raised = []
-        for test, expected_output in zip(test_inputs, test_outputs):
+        results = []
+        passed_count, failed_count, raised_count = 0, 0, 0
+        print(len(test_cases))
+        for test in test_cases:
             try:
                 # Compile and execute the user's code within the restricted environment
                 exec(code, restricted_globals, restricted_locals)
                 # Execute the 'main' function with the provided arguments
                 main_function = restricted_locals['main']
-                if main_function(*test) == expected_output:
-                    test_passed.append(test)
+                current_output = main_function(*[float(_) for _ in test.test_inputs.split(',')])
+                if check_equivalent(current_output, test.test_outputs):
+                    passed_count = passed_count + 1
+                    if test.public:
+                        results.append((test.test_inputs, "passed",
+                                        f"Expected: {test.test_outputs}. Given: {current_output}"))
                 else:
-                    test_failed.append(test)
-            except Exception:
+                    failed_count = failed_count + 1
+                    if test.public:
+                        results.append((test.test_inputs, "failed",
+                                        f"Expected: {test.test_outputs}. Given: {current_output}"))
+            except Exception as e:
                 if verbose:
                     import traceback
                     print(traceback.format_exc())
-                test_raised.append(test)
-        return test_passed, test_failed, test_raised
+                raised_count = raised_count + 1
+                if test.public:
+                    results.append((test.test_inputs, "failed", f"{type(e).__name__}: {str(e)}"))
+        return results, passed_count, failed_count, raised_count
 
 
 if __name__ == "__main__":
@@ -63,16 +84,16 @@ def main(arg):
             print(l)
         return arg * 2
     """
-    passed, failed, raised = sb.run(test_code1, test_inputs=[[5], [6], [7]], test_outputs=[10, 12, 14])
-    print(passed)
-    print(failed)
-    print(raised)
+    tc1 = TestCase(id=0, problem_id=0, test_inputs='5', test_outputs='10', public=True, active=True, problem=None)
+    tc2 = TestCase(id=0, problem_id=0, test_inputs='6', test_outputs='12', public=True, active=True, problem=None)
+    tc3 = TestCase(id=0, problem_id=0, test_inputs='7', test_outputs='14', public=False, active=True, problem=None)
+
+    result = sb.run(code=test_code1, test_cases=[tc1, tc2, tc3])
+    print(*result, sep="\n")
     test_code2 = """
 def main(arg):
     return arg * 2
     """
     sb2 = SandboxPython()
-    passed, failed, raised = sb2.run(test_code2, test_inputs=[[5], [6], [7]], test_outputs=[10, 12, 14])
-    print(passed)
-    print(failed)
-    print(raised)
+    result = sb2.run(code=test_code2, test_cases=[tc1, tc2, tc3])
+    print(*result, sep="\n")
