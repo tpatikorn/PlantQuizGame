@@ -43,6 +43,8 @@ class SandboxPython:
         restricted_locals = {'__builtins__': {}}
         for fn in self.restricted_functions:
             restricted_globals[fn] = self.construct_function(fn)
+        restricted_globals['__builtins__']['__import__'] = self.custom_import
+        restricted_locals['__builtins__']['__import__'] = self.custom_import
         # Create a restricted environment
         results = []
         passed_count, failed_count, raised_count = 0, 0, 0
@@ -70,7 +72,7 @@ class SandboxPython:
                     print(traceback.format_exc())
                 raised_count = raised_count + 1
                 if test.public:
-                    results.append((test.test_inputs, "failed", f"{type(e).__name__}: {str(e)}"))
+                    results.append((test.test_inputs, "raised", f"{type(e).__name__}: {str(e)}"))
         return results, passed_count, failed_count, raised_count
 
 
@@ -78,6 +80,7 @@ if __name__ == "__main__":
     sb = SandboxPython()
     # Python code as text
     test_code1 = """
+import random
 def main(arg):
     with open("app.py") as p:
         for l in p:

@@ -99,23 +99,36 @@ class Language(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(Text)
     active: Mapped[bool] = mapped_column(Boolean)
-    problems: Mapped[List["Problem"]] = relationship(back_populates="language", repr=False)
+    categories: Mapped[List["Category"]] = relationship(back_populates="language", repr=False)
+
+
+class Category(Base):
+    __tablename__ = "categories"
+    __table_args__ = {"schema": "coding"}
+    json_field_list = ["id", "name", "language_id", "active"]
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(Text)
+    language_id: Mapped[int] = mapped_column(ForeignKey("coding.languages.id"))
+    active: Mapped[bool] = mapped_column(Boolean)
+    language: Mapped["Language"] = relationship(back_populates="categories", repr=False)
+    problems: Mapped[List["Problem"]] = relationship(back_populates="category", repr=False)
 
 
 class Problem(Base):
     __tablename__ = "problems"
     __table_args__ = {"schema": "coding"}
-    json_field_list = ["id", "name", "description_th", "description_en", "language_id", "input_format", "output_format", "active"]
+    json_field_list = ["id", "name", "description_th", "description_en", "category_id", "input_format", "output_format",
+                       "active"]
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(Text)
     description_th: Mapped[str] = mapped_column(Text)
     description_en: Mapped[str] = mapped_column(Text)
-    language_id: Mapped[int] = mapped_column(ForeignKey("coding.languages.id"))
+    category_id: Mapped[int] = mapped_column(ForeignKey("coding.categories.id"))
     input_format: Mapped[str] = mapped_column(Text)
     output_format: Mapped[str] = mapped_column(Text)
     active: Mapped[bool] = mapped_column(Boolean)
-    language: Mapped["Language"] = relationship(back_populates="problems", repr=False)
+    category: Mapped["Category"] = relationship(back_populates="problems", repr=False)
     test_cases: Mapped[List["TestCase"]] = relationship(back_populates="problem", repr=False)
 
 
@@ -142,9 +155,10 @@ if __name__ == "__main__":
         print(type(result[0]), result[0])
         print("done")
 
-        q = select(TestCase).join(Problem).join(Language).where(Problem.name == "sum")
+        q = select(TestCase).join(Problem).join(Category).join(Language).where(Problem.name == "sum")
         result = g.session.scalars(q).fetchall()
         print(result)
+
 
     from util.simple_main_test import test_this
 

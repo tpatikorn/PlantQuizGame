@@ -10,8 +10,13 @@
             charset="utf-8"></script>
     <style media="screen">
         #editor {
-            width: 500px;
-            height: 300px;
+            width: 480px;
+            height: 200px;
+        }
+
+        .selector_choices {
+            min-width: 240px;
+            margin: 2px;
         }
 
         .passed {
@@ -29,15 +34,50 @@
     </style>
     <script>
 
-        const problems = {};
-        {% for p in problems %}
-            problems['{{ p.id }}'] = JSON.parse(`{{ p|safe }}`);
+        const categories = {};
+        {% for c in categories %}
+            categories['{{ c.id }}'] = JSON.parse(`{{ c|safe }}`);
         {% endfor %}
+        let problems = {};
 
         $(function () {
-            let $problemSelector = $("#problem_selector");
-            $problemSelector.on("change", function () {
-                const this_problem = problems[$problemSelector.val()];
+            const $problemSelector = $("#problem_selector");
+            $("#category_selector").on("click", "a", function () {
+                let text = $(this).html();
+                let htmlText = text + ' <span class="caret"></span>';
+                $(this).closest('.dropdown').find('.dropdown-toggle').html(htmlText);
+                const category_id = $(this).data("category_id");
+                // set problem selector to not selecting anything and disable validate
+                $problemSelector.closest('.dropdown').find('.dropdown-toggle').html("=== select a problem ===");
+                $problemSelector.closest('.dropdown').find('.dropdown-toggle').prop("disabled", false);
+                $("#validate").prop("disabled", true);
+                $.ajax({
+                    url: `/coding/fetch_problems?category_id=${category_id}`,
+                    type: "GET",
+                    contentType: "application/json",
+                    success: function (data) {
+                        $problemSelector.empty();
+                        for (let p of data) {
+                            p = JSON.parse(p);
+                            problems[p.id] = p;
+                            $problemSelector.append(
+                                `<li><a class="dropdown-item" href="#" data-problem_id="${p.id}" class="selector_choices">${p.name}</a></li>`);
+                        }
+                    },
+                    error: function (xhr) {
+                        console.log(xhr);
+                    }
+                });
+            });
+
+            $problemSelector.on("click", "a", function () {
+                const problem_id = parseInt($(this).data("problem_id"));
+                console.log(problem_id);
+                let text = $(this).html() + ' <span class="caret"></span>';
+                $(this).closest('.dropdown').find('.dropdown-toggle').html(text);
+                $problemSelector.data("problem_id", problem_id);
+                $("#validate").prop("disabled", false);
+                const this_problem = problems[problem_id];
                 const editor = ace.edit("editor");
                 const in_fm = this_problem['input_format'];
                 const out_fm = this_problem['output_format'];
@@ -47,7 +87,6 @@
                 $("#description_th").html(this_problem['description_th']);
                 $("#description_en").html(this_problem['description_en']);
             });
-            $problemSelector.change();
 
             function update_feedback(data) {
                 let results = data[0]
@@ -61,6 +100,7 @@
                 const $result_table = $("#results tbody");
                 $result_table.empty();
                 for (const test of results) {
+                    let status = test[1];
                     switch (test[1]) {
                         case "passed":
                             passed++;
@@ -71,32 +111,42 @@
                             failed_hidden--;
                             break
                         case "raised":
+                            status = "error"
                             raised++;
                             raised_hidden--;
                             break
                     }
-                    $result_table.append(`<tr class='${test[1]}'><td>${test[0]}</td><td>${test[1]}</td><td>${test[2]}</td></tr>`);
+                    $result_table.append(`<tr class='${test[1]}'><td>${test[0]}</td><td>${status}</td><td>${test[2]}</td></tr>`);
                 }
 
                 $("#passed_messages").html(`You passed ${passed} test(s) and ${passed_hidden} hidden test(s)`);
-                $("#failed_messages").html(`You failed ${failed} test(s) and ${failed_hidden} hidden test(s)`);
-                $("#raised_messages").html(`You failed ${raised} test(s) and ${raised_hidden} hidden test(s) with errors`);
-                $("#passed").html(passed);
-                $("#failed").html(failed);
-                $("#raised").html(raised);
+                if (failed + failed_hidden > 0) {
+                    $("#failed_messages").html(`You failed ${failed} test(s) and ${failed_hidden} hidden test(s)`);
+                } else {
+                    $("#failed_messages").html(``);
+                }
+                if (raised + raised_hidden > 0) {
+                    $("#raised_messages").html(`You failed ${raised} test(s) and ${raised_hidden} hidden test(s) with errors`);
+                } else {
+                    $("#raised_messages").html(``);
+                }
+                $("#passed").html(passed + passed_hidden);
+                $("#failed").html(failed + failed_hidden);
+                $("#raised").html(raised + raised_hidden);
             }
 
             $("#validate").on("click", function () {
                 const editor = ace.edit("editor");
-                const body = JSON.stringify({"problem_id": $problemSelector.val(), "code": editor.getValue(0)});
-                console.log(body);
+                const body = JSON.stringify({
+                    "problem_id": $problemSelector.data("problem_id"),
+                    "code": editor.getValue(0)
+                });
                 $.ajax({
                     url: "/coding/code_test",
                     type: "POST",
                     data: body,
                     contentType: "application/json",
                     success: function (data) {
-                        console.log(data);
                         update_feedback(data);
                     },
                     error: function (xhr) {
@@ -107,46 +157,77 @@
         });
 
     </script>
-    <label for="problem_selector">Select the problem: </label><select id="problem_selector">
-    {% for p in problems %}
-        <option value="{{ p.id }}">{{ p.name }}</option>
-    {% endfor %}
-</select> <br>
-    <span>description: </span><br>
-    <span id="description_th"></span><br>
-    <span id="description_en"></span><br>
-    <h3><span class="badge bg-success">correct
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <div class="dropdown">
+                    <label for="category_selector" style="width:160px">Select a category: </label>
+                    <button class="btn btn-info btn-sm dropdown-toggle selector_choices" type="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        === select a category ===
+                    </button>
+                    <ul class="dropdown-menu" id="category_selector">
+                        {% for c in categories %}
+                            <li><a class="dropdown-item" href="#" data-category_id="{{ c.id }}">{{ c.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="dropdown">
+                    <label for="problem_selector" style="width:160px">Select a problem: </label>
+                    <button class="btn btn-info btn-sm dropdown-toggle selector_choices" type="button"
+                            data-bs-toggle="dropdown" aria-expanded="false" disabled>
+                        === select a problem ===
+                    </button>
+                    <ul class="dropdown-menu" id="problem_selector">
+                    </ul>
+                </div>
+                <span>description: </span><br>
+                <span id="description_en">Welcome to Code Runner! Please select a problem category,
+                    then select a problem within that category. After that you can write the code to solve that problem.
+                    When you feel ready, click "validate" to test your code against the test cases.
+                    The result will be shown on the right. There are "public tests" where you'll see the inputs you pass/fail,
+                    and "hidden" tests where you only see how many you passed or failed.</span><br>
+                <span id="description_th">พลาดแล้วที่หลงมาที่ Code Runner! เริ่มจากเลือกหมวดของปัญหา (category) แล้วเลือกปัญหา (problem)
+                หลังจากนั้นก็สามารถ code ได้เลย และเมื่อรู้สึกว่า code น่าจะพัง เอ๊ย ผ่านแล้ว ลองกด validate เพื่อทดสอบ code ได้เลย
+                code จะถูกทดสอบกับ test cases ที่ระบบทำไว้แล้วจะแสดงผลในตารางทางขวา โดยที่ test จะมีทั้ง
+                    public คือ เห็นได้เลยว่า input ที่ code ทำผ่าน(หรือพัง) คืออะไร และ hidden คือ จะรู้แค่ว่า code ผ่านหรือพัง</span><br>
+                <h3><span class="badge bg-success">correct
         <span id="passed" class="badge bg-light text-dark">0</span></span>
-        <span class="badge bg-danger">incorrect
+                    <span class="badge bg-danger">incorrect
         <span id="failed" class="badge bg-light text-dark">0</span></span>
-        <span class="badge bg-warning">error
+                    <span class="badge bg-warning">error
         <span id="raised" class="badge bg-light text-dark">0</span></span></h3>
-    <div id="editor">
-    </div>
-    <script>
-        var editor = ace.edit("editor");
-        editor.setTheme("ace/theme/monokai");
-        editor.session.setMode("ace/mode/python");
-    </script>
+                <div id="editor">
+                </div>
+                <script>
+                    let editor = ace.edit("editor");
+                    editor.setTheme("ace/theme/monokai");
+                    editor.session.setMode("ace/mode/python");
+                </script>
 
-    <input type="submit" value="validate" id="validate">
-    <div id="feedback">
-        <h3>Feedback</h3>
-        <table id="results" class="table">
-            <thead>
-            <tr>
-                <th scope="col">input</th>
-                <th scope="col">result</th>
-                <th scope="col">note</th>
-            </tr>
-            </thead>
-            <tbody>
+                <input type="button" class="btn btn-primary" value="validate" id="validate" disabled>
+            </div>
+            <div class="col">
+                <div id="feedback">
+                    <h3>Feedback</h3>
+                    <table id="results" class="table">
+                        <thead>
+                        <tr>
+                            <th scope="col" style="width:30%">input</th>
+                            <th scope="col" style="width:10%">result</th>
+                            <th scope="col" style="width:60%">note</th>
+                        </tr>
+                        </thead>
+                        <tbody>
 
-            </tbody>
-        </table>
+                        </tbody>
+                    </table>
 
-        <span id="passed_messages" class="passed"></span><br>
-        <span id="failed_messages" class="failed"></span><br>
-        <span id="raised_messages" class="raised"></span><br>
+                    <span id="passed_messages" class="passed"></span><br>
+                    <span id="failed_messages" class="failed"></span><br>
+                    <span id="raised_messages" class="raised"></span><br>
+                </div>
+            </div>
+        </div>
     </div>
 {% endblock %}
