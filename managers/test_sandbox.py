@@ -38,7 +38,7 @@ class SandboxPython:
             raise ImportError(f"Import of '{name}' module is not allowed")
         return __import__(name, custom_globals, custom_locals, fromlist, level)
 
-    def run(self, code: str, test_cases: List[TestCase], verbose=False):
+    def run(self, code: str, test_cases: List[TestCase], result_only=False, verbose=False):
         restricted_globals = {'__builtins__': {}}
         restricted_locals = {'__builtins__': {}}
         for fn in self.restricted_functions:
@@ -56,11 +56,14 @@ class SandboxPython:
                 # Execute the 'main' function with the provided arguments
                 main_function = restricted_locals['main']
                 current_output = main_function(*[float(_) for _ in test.test_inputs.split(',')])
-                if check_equivalent(current_output, test.test_outputs):
+                if check_equivalent(current_output, test.test_outputs) or result_only:
                     passed_count = passed_count + 1
                     if test.public:
-                        results.append((test.test_inputs, "passed",
-                                        f"Expected: {test.test_outputs}. Given: {current_output}"))
+                        if result_only:
+                            results.append((test.test_inputs, "passed", current_output))
+                        else:
+                            results.append((test.test_inputs, "passed",
+                                            f"Expected: {test.test_outputs}. Given: {current_output}"))
                 else:
                     failed_count = failed_count + 1
                     if test.public:
@@ -95,7 +98,7 @@ def main(arg):
     print(*result, sep="\n")
     test_code2 = """
 def main(arg):
-    return arg * 2
+    return arg +5
     """
     sb2 = SandboxPython()
     result = sb2.run(code=test_code2, test_cases=[tc1, tc2, tc3])

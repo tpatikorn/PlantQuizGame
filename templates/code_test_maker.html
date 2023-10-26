@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+
+{% block header %}
+    <h1>{% block title %}CODE{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.31.0/ace.min.js" type="text/javascript"
+            charset="utf-8"></script>
+    <style media="screen">
+        #editor {
+            width: 100%;
+            height: 200px;
+        }
+
+        .selector_choices {
+            min-width: 240px;
+            margin: 2px;
+        }
+
+        .passed {
+            color: green
+        }
+
+        .failed {
+            color: red
+        }
+
+        .raised {
+            color: white;
+            background-color: red
+        }
+    </style>
+    <script>
+
+        const categories = {};
+        {% for c in categories %}
+            categories['{{ c.id }}'] = JSON.parse(`{{ c|safe }}`);
+        {% endfor %}
+        let problems = {};
+
+        $(function () {
+            $("#category_selector").on("click", "a", function () {
+                let text = $(this).html();
+                let htmlText = text + ' <span class="caret"></span>';
+                $(this).closest('.dropdown').find('.dropdown-toggle').html(htmlText);
+                $('#category_selector').val($(this).data("category_id"));
+                $("#submit").prop("disabled", false);
+            });
+
+            function update_feedback(data) {
+                let results = data[0]
+                let passed_hidden = data[1];
+                let failed_hidden = data[2];
+                let raised_hidden = data[3];
+                let passed = 0;
+                let failed = 0;
+                let raised = 0;
+
+                const $result_table = $("#results tbody");
+                $result_table.empty();
+                for (const test of results) {
+                    let status = test[1];
+                    switch (test[1]) {
+                        case "passed":
+                            passed++;
+                            passed_hidden--;
+                            break
+                        case "failed":
+                            failed++;
+                            failed_hidden--;
+                            break
+                        case "raised":
+                            status = "error"
+                            raised++;
+                            raised_hidden--;
+                            break
+                    }
+                    $result_table.append(`<tr class='${test[1]}'><td>${test[0]}</td><td>${status}</td><td>${test[2]}</td></tr>`);
+                }
+
+                $("#passed_messages").html(`You passed ${passed} test(s) and ${passed_hidden} hidden test(s)`);
+                $("#failed_messages").html(`You failed ${failed} test(s) and ${failed_hidden} hidden test(s)`);
+                $("#raised_messages").html(`You failed ${raised} test(s) and ${raised_hidden} hidden test(s) with errors`);
+                $("#passed").html(passed + passed_hidden);
+                $("#failed").html(failed + failed_hidden);
+                $("#raised").html(raised + raised_hidden);
+            }
+
+            $("#validate").on("click", function () {
+                const editor = ace.edit("editor");
+                const body = JSON.stringify({
+                    "code": editor.getValue(0),
+                    "test_inputs": $("#test_inputs").val(),
+                });
+                $.ajax({
+                    url: "/coding/code_test",
+                    type: "POST",
+                    data: body,
+                    contentType: "application/json",
+                    success: function (data) {
+                        update_feedback(data);
+                    },
+                    error: function (xhr) {
+                        console.log(xhr);
+                    }
+                });
+            });
+
+            $("#submit").on("click", function () {
+                const editor = ace.edit("editor");
+                const body = JSON.stringify({
+                    "name": "test",
+                    "code": editor.getValue(0),
+                    "test_inputs": $("#test_inputs").val(),
+                    "description_en": $("#description_en").val(),
+                    "description_th": $("#description_th").val(),
+                    "category_id": $("#category_selector").val(),
+                    "input_format": "x->'float'",
+                    "output_format": 'float',
+                });
+                $.ajax({
+                    url: "/coding/code_create_problem",
+                    type: "POST",
+                    data: body,
+                    contentType: "application/json",
+                    success: function (data) {
+                        update_feedback(data);
+                    },
+                    error: function (xhr) {
+                        console.log(xhr);
+                    }
+                });
+            });
+
+        });
+
+    </script>
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <div class="dropdown">
+                    <label for="category_selector" style="width:160px">Select a category: </label>
+                    <button class="btn btn-info btn-sm dropdown-toggle selector_choices" type="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        === select a category ===
+                    </button>
+                    <ul class="dropdown-menu" id="category_selector">
+                        {% for c in categories %}
+                            <li><a class="dropdown-item" href="#" data-category_id="{{ c.id }}">{{ c.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="input-group">
+                    <span class="input-group-text" style="width:160px">คำอธิบาย (อังกฤษ)</span>
+                    <textarea id="description_en" class="form-control" aria-label="With textarea"></textarea>
+                </div>
+                <div class="input-group">
+                    <span class="input-group-text" style="width:160px">คำอธิบาย (ไทย)</span>
+                    <textarea id="description_th" class="form-control" aria-label="With textarea"></textarea>
+                </div>
+                <h3>
+                    <span class="badge bg-success" style="margin:10px">correct
+                        <span id="passed" class="badge bg-light text-dark">0</span></span>
+                    <span class="badge bg-danger" style="margin:10px">incorrect
+                        <span id="failed" class="badge bg-light text-dark">0</span></span>
+                    <span class="badge bg-warning" style="margin:10px">error
+                        <span id="raised" class="badge bg-light text-dark">0</span></span>
+                </h3>
+                <div id="editor">
+                </div>
+                <script>
+                    let editor = ace.edit("editor");
+                    editor.setTheme("ace/theme/monokai");
+                    editor.session.setMode("ace/mode/python");
+                </script>
+
+                <div class="input-group">
+                    <span class="input-group-text" style="width:160px">test inputs</span>
+                    <textarea id="test_inputs" class="form-control" aria-label="With textarea" rows="10"></textarea>
+                </div>
+                <input type="button" class="btn btn-primary" value="validate" id="validate">
+                <input type="button" class="btn btn-primary" value="create this problem" id="submit" disabled>
+            </div>
+            <div class="col">
+                <div id="feedback">
+                    <h3>Feedback</h3>
+                    <table id="results" class="table">
+                        <thead>
+                        <tr>
+                            <th scope="col" style="width:30%">input</th>
+                            <th scope="col" style="width:10%">result</th>
+                            <th scope="col" style="width:60%">note</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+
+                    <span id="passed_messages" class="passed"></span><br>
+                    <span id="failed_messages" class="failed"></span><br>
+                    <span id="raised_messages" class="raised"></span><br>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
