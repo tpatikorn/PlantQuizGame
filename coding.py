@@ -1,4 +1,6 @@
 from flask import Blueprint, render_template, jsonify, request, session
+
+from auth import login_required
 from managers import coding_manager
 from managers.coding_manager import test_code
 from models.db_models import TestCase
@@ -21,11 +23,11 @@ def code_runner():
 @bp.route('/fetch_problems')
 def fetch_problems():
     results = coding_manager.find_problems(category_id=int(request.args.get("category_id")))
-    print(request.args.get("category_id"), results)
     return [_.to_json() for _ in results]
 
 
 @bp.route('/code_create_problem', methods=["POST"])
+@login_required
 def code_create_problem():
     if "user" not in session.keys():
         return "You cannot test code while not logged in.", 403
@@ -45,16 +47,14 @@ def code_create_problem():
     sb = SandboxPython()
     results = sb.run(code, test_cases, result_only=True, verbose=True)
     for test_case in results[0]:
-        print(test_case)
         coding_manager.create_test_case(problem_id=new_problem_id, test_inputs=test_case[0], test_outputs=test_case[2],
                                         public=True)
     return jsonify(results)
 
 
 @bp.route('/code_test', methods=["POST"])
+@login_required
 def code_test():
-    if "user" not in session.keys():
-        return "You cannot test code while not logged in.", 403
     body = request.get_json()
     if "problem_id" in body.keys():
         return jsonify(test_code(body["code"], problem_id=body["problem_id"]))

@@ -1,4 +1,6 @@
 import os
+from functools import wraps
+
 from authlib.integrations.flask_client import OAuth
 from flask import Blueprint, redirect, session, url_for
 from managers import user_manager
@@ -16,6 +18,16 @@ oauth.register(
         'scope': 'openid email profile'
     }
 )
+
+
+def login_required(func):
+    @wraps(func)
+    def check_login(*args, **kwargs):
+        if "user" not in session.keys():
+            return "You cannot test code while not logged in.", 403
+        else:
+            return func(*args, **kwargs)
+    return check_login
 
 
 @bp.route('/login', methods=['POST', 'GET'])
