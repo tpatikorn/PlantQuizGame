@@ -1,7 +1,6 @@
-import tempfile
-import os
+from functools import partial
 from typing import List, Tuple
-
+from multiprocessing import Process, Pool
 from models.db_models import TestCase
 
 
@@ -17,8 +16,8 @@ def check_equivalent(a: any, b: any, expected_type: type = float, tol: float = 1
 class SandboxPython:
 
     def __init__(self, base_restricted_functions=None, base_restricted_imports=None,
-                 additional_restricted_functions=None, additional_restricted_imports=None):
-
+                 additional_restricted_functions=None, additional_restricted_imports=None, timeout=1):
+        self.timeout = timeout
         self.restricted_functions = base_restricted_functions or ['open', 'input']
         if additional_restricted_functions is not None:
             self.restricted_functions.extend(additional_restricted_functions)
@@ -38,46 +37,58 @@ class SandboxPython:
             raise ImportError(f"Import of '{name}' module is not allowed")
         return __import__(name, custom_globals, custom_locals, fromlist, level)
 
+    def test_target_code(self, target_test, target_code, result_only):
+        try:
+            restricted_globals = {'__builtins__': {}}
+            restricted_locals = {'__builtins__': {}}
+            for fn in self.restricted_functions:
+                restricted_globals[fn] = self.construct_function(fn)
+            restricted_globals['__builtins__']['__import__'] = self.custom_import
+            restricted_locals['__builtins__']['__import__'] = self.custom_import
+
+            # Compile and execute the user's code within the restricted environment
+            exec(target_code, restricted_globals, restricted_locals)
+            # Execute the 'main' function with the provided arguments
+            main_function = restricted_locals['main']
+            current_output = main_function(*[float(_) for _ in target_test.test_inputs.split(',')])
+            if check_equivalent(current_output, target_test.test_outputs) or result_only:
+                if target_test.public:
+                    if result_only:
+                        return target_test.test_inputs, "passed", current_output
+                    else:
+                        return target_test.test_inputs, "passed", f"Expected: {target_test.test_outputs}. Given: {current_output}"
+                else:
+                    return None, "passed", None
+            else:
+                if target_test.public:
+                    return target_test.test_inputs, "failed", f"Expected: {target_test.test_outputs}. Given: {current_output}"
+                else:
+                    return None, "failed", None
+        except Exception as e:
+            if target_test.public:
+                return target_test.test_inputs, "raised", f"{type(e).__name__}: {str(e)}"
+            else:
+                return None, "raised", None
+
     def run(self, code: str, test_cases: List[TestCase], result_only=False, verbose=False) -> \
             Tuple[List[Tuple[str, str, str]], int, int, int]:
-        restricted_globals = {'__builtins__': {}}
-        restricted_locals = {'__builtins__': {}}
-        for fn in self.restricted_functions:
-            restricted_globals[fn] = self.construct_function(fn)
-        restricted_globals['__builtins__']['__import__'] = self.custom_import
-        restricted_locals['__builtins__']['__import__'] = self.custom_import
+
         # Create a restricted environment
         results = []
-        passed_count, failed_count, raised_count = 0, 0, 0
-        print(len(test_cases))
-        for test in test_cases:
-            try:
-                # Compile and execute the user's code within the restricted environment
-                exec(code, restricted_globals, restricted_locals)
-                # Execute the 'main' function with the provided arguments
-                main_function = restricted_locals['main']
-                current_output = main_function(*[float(_) for _ in test.test_inputs.split(',')])
-                if check_equivalent(current_output, test.test_outputs) or result_only:
-                    passed_count = passed_count + 1
-                    if test.public:
-                        if result_only:
-                            results.append((test.test_inputs, "passed", current_output))
-                        else:
-                            results.append((test.test_inputs, "passed",
-                                            f"Expected: {test.test_outputs}. Given: {current_output}"))
+        passed_counts, failed_counts, raised_counts = 0, 0, 0
+        with Pool(processes=4) as pool:
+            pooled_results = pool.map(
+                partial(self.test_target_code, target_code=code, result_only=result_only), test_cases)
+            for test_inputs, status, message in pooled_results:
+                if message:
+                    results.append((test_inputs, status, message))
+                if status == "passed":
+                    passed_counts = passed_counts + 1
+                elif status == "failed":
+                    failed_counts = failed_counts + 1
                 else:
-                    failed_count = failed_count + 1
-                    if test.public:
-                        results.append((test.test_inputs, "failed",
-                                        f"Expected: {test.test_outputs}. Given: {current_output}"))
-            except Exception as e:
-                if verbose:
-                    import traceback
-                    print(traceback.format_exc())
-                raised_count = raised_count + 1
-                if test.public:
-                    results.append((test.test_inputs, "raised", f"{type(e).__name__}: {str(e)}"))
-        return results, passed_count, failed_count, raised_count
+                    raised_counts = raised_counts + 1
+        return results, passed_counts, failed_counts, raised_counts
 
 
 if __name__ == "__main__":
