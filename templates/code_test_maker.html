@@ -102,8 +102,8 @@
                     success: function (data) {
                         update_feedback(data);
                     },
-                    error: function (xhr) {
-                        console.log(xhr);
+                    error: function (xhr, exception) {
+                        alert(xhr.responseText);
                     }
                 });
             });
@@ -128,8 +128,8 @@
                     success: function (data) {
                         update_feedback(data);
                     },
-                    error: function (xhr) {
-                        console.log(xhr);
+                    error: function (xhr, exception) {
+                        alert(xhr.responseText);
                     }
                 });
             });

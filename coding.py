@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template, jsonify, request
+from flask import Blueprint, render_template, jsonify, request, session
 from managers import coding_manager
+from managers.coding_manager import test_code
 from models.db_models import TestCase
 
 bp = Blueprint('coding', __name__, url_prefix='/coding')
@@ -26,6 +27,8 @@ def fetch_problems():
 
 @bp.route('/code_create_problem', methods=["POST"])
 def code_create_problem():
+    if "user" not in session.keys():
+        return "You cannot test code while not logged in.", 403
     from managers.test_sandbox import SandboxPython
     body = request.get_json()
     new_problem_id = coding_manager.create_problem(name=body["name"],
@@ -50,15 +53,10 @@ def code_create_problem():
 
 @bp.route('/code_test', methods=["POST"])
 def code_test():
-    from managers.test_sandbox import SandboxPython
+    if "user" not in session.keys():
+        return "You cannot test code while not logged in.", 403
     body = request.get_json()
-    code = body["code"]
     if "problem_id" in body.keys():
-        test_cases = coding_manager.find_test_cases(body["problem_id"])
+        return jsonify(test_code(body["code"], problem_id=body["problem_id"]))
     else:
-        test_cases = [
-            TestCase(id=0, problem_id=0, test_inputs=test_input, test_outputs=0, public=True, active=True, problem=None)
-            for test_input in body["test_inputs"].split("\n")]
-    sb = SandboxPython()
-    result = sb.run(code, test_cases, result_only=True, verbose=True)
-    return jsonify(result)
+        return jsonify(test_code(body["code"], test_inputs=body["test_inputs"].split("\n")))

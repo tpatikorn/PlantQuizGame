@@ -1,6 +1,6 @@
 import tempfile
 import os
-from typing import List
+from typing import List, Tuple
 
 from models.db_models import TestCase
 
@@ -38,7 +38,8 @@ class SandboxPython:
             raise ImportError(f"Import of '{name}' module is not allowed")
         return __import__(name, custom_globals, custom_locals, fromlist, level)
 
-    def run(self, code: str, test_cases: List[TestCase], result_only=False, verbose=False):
+    def run(self, code: str, test_cases: List[TestCase], result_only=False, verbose=False) -> \
+            Tuple[List[Tuple[str, str, str]], int, int, int]:
         restricted_globals = {'__builtins__': {}}
         restricted_locals = {'__builtins__': {}}
         for fn in self.restricted_functions:

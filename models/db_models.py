@@ -1,6 +1,6 @@
 import json
 from typing import Optional, List
-from sqlalchemy import Boolean, ForeignKey, select, Text, Table, Column
+from sqlalchemy import Boolean, ForeignKey, select, Text, Table, Column, Integer
 from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped, relationship, MappedAsDataclass
 
 
@@ -89,6 +89,7 @@ class User(Base):
     picture: Mapped[str] = mapped_column(Text)
     admin: Mapped[bool] = mapped_column(Boolean)
     active: Mapped[bool] = mapped_column(Boolean)
+    submissions: Mapped[List["CodeSubmission"]] = relationship(back_populates="user", repr=False)
 
 
 class Language(Base):
@@ -130,6 +131,7 @@ class Problem(Base):
     active: Mapped[bool] = mapped_column(Boolean)
     category: Mapped["Category"] = relationship(back_populates="problems", repr=False)
     test_cases: Mapped[List["TestCase"]] = relationship(back_populates="problem", repr=False)
+    submissions: Mapped[List["CodeSubmission"]] = relationship(back_populates="problem", repr=False)
 
 
 class TestCase(Base):
@@ -144,6 +146,22 @@ class TestCase(Base):
     public: Mapped[bool] = mapped_column(Boolean)
     active: Mapped[bool] = mapped_column(Boolean)
     problem: Mapped["Problem"] = relationship(back_populates="test_cases", repr=False)
+
+
+class CodeSubmission(Base):
+    __tablename__ = "code_submissions"
+    __table_args__ = {"schema": "coding"}
+    json_field_list = ["id", "user_id", "problem_id", "code", "passed", "failed", "active"]
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    problem_id: Mapped[int] = mapped_column(ForeignKey("coding.problems.id"))
+    code: Mapped[str] = mapped_column(Text)
+    passed: Mapped[int] = mapped_column(Integer)
+    failed: Mapped[int] = mapped_column(Integer)
+    raised: Mapped[int] = mapped_column(Integer)
+    active: Mapped[bool] = mapped_column(Boolean)
+    user: Mapped["User"] = relationship(back_populates="submissions", repr=False)
+    problem: Mapped["Problem"] = relationship(back_populates="submissions", repr=False)
 
 
 if __name__ == "__main__":

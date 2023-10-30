@@ -29,10 +29,9 @@ def callback():
     token = oauth.google.authorize_access_token()
     user = token['userinfo']
 
-    user_manager.upsert_user_google(email=user.email, given_name=user.given_name, family_name=user.family_name,
-                                    name=user.name, picture=user.picture)
-
-    session['user'] = user
+    new_user = user_manager.upsert_user_google(email=user.email, given_name=user.given_name,
+                                               family_name=user.family_name, name=user.name, picture=user.picture)
+    session['user'] = new_user
     return redirect('/index')
 
 
