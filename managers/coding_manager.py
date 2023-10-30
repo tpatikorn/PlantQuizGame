@@ -42,7 +42,7 @@ def create_problem(name: str, category_id: int, description_th: str, description
 
 
 def test_code(code: str, problem_id: int = None, test_inputs: List[str] = None) \
-        -> Tuple[List[Tuple[str, str, str]], int, int, int]:
+        -> Tuple[List[Tuple[str, str, str]], int, int, int, int]:
     if problem_id:
         test_cases = find_test_cases(problem_id)
     else:
@@ -52,7 +52,7 @@ def test_code(code: str, problem_id: int = None, test_inputs: List[str] = None) 
             for test_input in test_inputs]
     results = SandboxPython().run(code, test_cases, result_only=(problem_id == 0), verbose=False)
     q = insert(CodeSubmission).values(problem_id=problem_id, user_id=session['user']['id'], code=code,
-                                      passed=results[1], failed=results[2], raised=results[3])
+                                      passed=results[1], failed=results[2], raised=results[3]+results[4])
     g.session.execute(q)
     g.session.commit()
     return results

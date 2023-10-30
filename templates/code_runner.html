@@ -96,6 +96,7 @@
                 let passed = 0;
                 let failed = 0;
                 let raised = 0;
+                let timeout = data[4];
 
                 const $result_table = $("#results tbody");
                 $result_table.empty();
@@ -125,8 +126,8 @@
                 } else {
                     $("#failed_messages").html(``);
                 }
-                if (raised + raised_hidden > 0) {
-                    $("#raised_messages").html(`You failed ${raised} test(s) and ${raised_hidden} hidden test(s) with errors`);
+                if (raised + raised_hidden + timeout > 0) {
+                    $("#raised_messages").html(`You failed ${raised} test(s) and ${raised_hidden} hidden test(s) with errors.\nYou timed out ${timeout} test(s)`);
                 } else {
                     $("#raised_messages").html(``);
                 }

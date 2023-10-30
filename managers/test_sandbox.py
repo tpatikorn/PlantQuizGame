@@ -1,6 +1,9 @@
 from functools import partial
 from typing import List, Tuple
 from multiprocessing import Process, Pool
+
+from pebble import concurrent, ProcessPool
+
 from models.db_models import TestCase
 
 
@@ -71,24 +74,32 @@ class SandboxPython:
                 return None, "raised", None
 
     def run(self, code: str, test_cases: List[TestCase], result_only=False, verbose=False) -> \
-            Tuple[List[Tuple[str, str, str]], int, int, int]:
+            Tuple[List[Tuple[str, str, str]], int, int, int, int]:
 
         # Create a restricted environment
         results = []
-        passed_counts, failed_counts, raised_counts = 0, 0, 0
-        with Pool(processes=4) as pool:
-            pooled_results = pool.map(
-                partial(self.test_target_code, target_code=code, result_only=result_only), test_cases)
-            for test_inputs, status, message in pooled_results:
-                if message:
-                    results.append((test_inputs, status, message))
-                if status == "passed":
-                    passed_counts = passed_counts + 1
-                elif status == "failed":
-                    failed_counts = failed_counts + 1
-                else:
-                    raised_counts = raised_counts + 1
-        return results, passed_counts, failed_counts, raised_counts
+        passed_counts, failed_counts, raised_counts, timed_counts = 0, 0, 0, 0
+        with ProcessPool() as pool:
+            mapped_pool = pool.map(
+                partial(self.test_target_code, target_code=code, result_only=result_only),
+                test_cases, timeout=self.timeout/10)
+            iterator = mapped_pool.result()
+            while True:
+                try:
+                    test_inputs, status, message = next(iterator)
+                    if message:
+                        results.append((test_inputs, status, message))
+                    if status == "passed":
+                        passed_counts = passed_counts + 1
+                    elif status == "failed":
+                        failed_counts = failed_counts + 1
+                    else:
+                        raised_counts = raised_counts + 1
+                except TimeoutError:
+                    timed_counts = timed_counts + 1
+                except StopIteration:
+                    break
+        return results, passed_counts, failed_counts, raised_counts, timed_counts
 
 
 if __name__ == "__main__":
