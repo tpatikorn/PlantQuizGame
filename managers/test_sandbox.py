@@ -1,10 +1,8 @@
+import json
 from functools import partial
-from typing import List, Tuple
-from multiprocessing import Process, Pool
-
-from pebble import concurrent, ProcessPool
-
-from models.db_models import TestCase
+from typing import List, Tuple, Dict
+from pebble import ProcessPool
+from models.db_models import TestCase, Problem
 
 
 def check_equivalent(a: any, b: any, expected_type: type = float, tol: float = 1e-6):
@@ -14,6 +12,22 @@ def check_equivalent(a: any, b: any, expected_type: type = float, tol: float = 1
         return abs(a - b) < tol
     else:
         return a == b
+
+
+def convert(value_dict: Dict[str, any], type_dict: Dict[str, str]):
+    for k, v in value_dict.items():
+        match type_dict[k]:
+            case "float":
+                value_dict[k] = float(v)
+            case "int":
+                value_dict[k] = int(v)
+            case "list_float":
+                value_dict[k] = [float(_) for _ in v]
+            case "list_int":
+                value_dict[k] = [int(_) for _ in v]
+            case _:
+                value_dict[k] = str(v)
+    return value_dict
 
 
 class SandboxPython:
@@ -40,7 +54,8 @@ class SandboxPython:
             raise ImportError(f"Import of '{name}' module is not allowed")
         return __import__(name, custom_globals, custom_locals, fromlist, level)
 
-    def test_target_code(self, target_test, target_code, result_only):
+    # run the code in the sandbox
+    def test_target_code(self, target_test: TestCase, target_code, result_only):
         try:
             restricted_globals = {'__builtins__': {}}
             restricted_locals = {'__builtins__': {}}
@@ -53,18 +68,22 @@ class SandboxPython:
             exec(target_code, restricted_globals, restricted_locals)
             # Execute the 'main' function with the provided arguments
             main_function = restricted_locals['main']
-            current_output = main_function(*[float(_) for _ in target_test.test_inputs.split(',')])
+            input_format = json.loads(target_test.problem.input_format)
+            test_inputs = convert(value_dict=json.loads(target_test.test_inputs), type_dict=input_format)
+            current_output = main_function(**test_inputs)
             if check_equivalent(current_output, target_test.test_outputs) or result_only:
                 if target_test.public:
                     if result_only:
                         return target_test.test_inputs, "passed", current_output
                     else:
-                        return target_test.test_inputs, "passed", f"Expected: {target_test.test_outputs}. Given: {current_output}"
+                        return target_test.test_inputs, "passed", \
+                            f"Expected: {target_test.test_outputs}. Given: {current_output}"
                 else:
                     return None, "passed", None
             else:
                 if target_test.public:
-                    return target_test.test_inputs, "failed", f"Expected: {target_test.test_outputs}. Given: {current_output}"
+                    return target_test.test_inputs, "failed", \
+                        f"Expected: {target_test.test_outputs}. Given: {current_output}"
                 else:
                     return None, "failed", None
         except Exception as e:
@@ -73,7 +92,8 @@ class SandboxPython:
             else:
                 return None, "raised", None
 
-    def run(self, code: str, test_cases: List[TestCase], result_only=False, verbose=False) -> \
+    # actually run the code against the TestCases
+    def run(self, code: str, test_cases: List[TestCase], result_only=False) -> \
             Tuple[List[Tuple[str, str, str]], int, int, int, int]:
 
         # Create a restricted environment
@@ -82,12 +102,13 @@ class SandboxPython:
         with ProcessPool() as pool:
             mapped_pool = pool.map(
                 partial(self.test_target_code, target_code=code, result_only=result_only),
-                test_cases, timeout=self.timeout/10)
+                test_cases, timeout=self.timeout)
             iterator = mapped_pool.result()
             while True:
                 try:
                     test_inputs, status, message = next(iterator)
-                    if message:
+                    print(test_inputs, status, message)
+                    if message is not None:
                         results.append((test_inputs, status, message))
                     if status == "passed":
                         passed_counts = passed_counts + 1
@@ -99,6 +120,7 @@ class SandboxPython:
                     timed_counts = timed_counts + 1
                 except StopIteration:
                     break
+        print(results)
         return results, passed_counts, failed_counts, raised_counts, timed_counts
 
 
@@ -113,9 +135,13 @@ def main(arg):
             print(l)
         return arg * 2
     """
-    tc1 = TestCase(id=0, problem_id=0, test_inputs='5', test_outputs='10', public=True, active=True, problem=None)
-    tc2 = TestCase(id=0, problem_id=0, test_inputs='6', test_outputs='12', public=True, active=True, problem=None)
-    tc3 = TestCase(id=0, problem_id=0, test_inputs='7', test_outputs='14', public=False, active=True, problem=None)
+    p = Problem.create_mock_problem(problem_id=0, input_format='{"arg":"int"}', output_format="int")
+    tc1 = TestCase(id=0, problem_id=0, test_inputs='{"arg":5}', test_outputs='10', public=True, active=True,
+                   problem=p)
+    tc2 = TestCase(id=0, problem_id=0, test_inputs='{"arg":6}', test_outputs='12', public=True, active=True,
+                   problem=p)
+    tc3 = TestCase(id=0, problem_id=0, test_inputs='{"arg":7}', test_outputs='14', public=False, active=True,
+                   problem=p)
 
     result = sb.run(code=test_code1, test_cases=[tc1, tc2, tc3])
     print(*result, sep="\n")

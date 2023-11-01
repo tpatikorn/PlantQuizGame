@@ -1,3 +1,5 @@
+import json
+
 from flask import Blueprint, render_template, jsonify, request, session
 
 from auth import login_required
@@ -45,7 +47,7 @@ def code_create_problem():
         TestCase(id=0, problem_id=0, test_inputs=test_input, test_outputs=0, public=True, active=True, problem=None)
         for test_input in body["test_inputs"].split("\n")]
     sb = SandboxPython()
-    results = sb.run(code, test_cases, result_only=True, verbose=True)
+    results = sb.run(code, test_cases, result_only=True)
     for test_case in results[0]:
         coding_manager.create_test_case(problem_id=new_problem_id, test_inputs=test_case[0], test_outputs=test_case[2],
                                         public=True)
@@ -57,6 +59,9 @@ def code_create_problem():
 def code_test():
     body = request.get_json()
     if "problem_id" in body.keys():
-        return jsonify(test_code(body["code"], problem_id=body["problem_id"]))
+        return jsonify(test_code(body["code"],
+                                 problem_id=body["problem_id"]))
     else:
-        return jsonify(test_code(body["code"], test_inputs=body["test_inputs"].split("\n")))
+        return jsonify(test_code(body["code"],
+                                 test_inputs=body["test_inputs"],
+                                 input_format=json.dumps(body["input_format"])))

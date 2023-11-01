@@ -1,5 +1,7 @@
 import json
 from typing import Optional, List
+from unittest import TestCase
+
 from sqlalchemy import Boolean, ForeignKey, select, Text, Table, Column, Integer
 from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped, relationship, MappedAsDataclass
 
@@ -120,6 +122,20 @@ class Problem(Base):
     __table_args__ = {"schema": "coding"}
     json_field_list = ["id", "name", "description_th", "description_en", "category_id", "input_format", "output_format",
                        "active"]
+
+    @staticmethod
+    def create_mock_problem(problem_id: int = 0, name: str = "mock_name", description_th: str = "mock_desc_th",
+                            description_en: str = "mock_desc_en", category_id: int = 0,
+                            input_format: str = '{"arg":"int"}', output_format: str = '["int"]',
+                            active: bool = True, category: Category = None, test_cases: list[TestCase] | None = None,
+                            submissions: List['CodeSubmission'] | None = None):
+        if submissions is None:
+            submissions = [None]
+        if test_cases is None:
+            test_cases = [None]
+        return Problem(id=problem_id, name=name, description_th=description_th, description_en=description_en,
+                       category_id=category_id, input_format=input_format, output_format=output_format, active=active,
+                       category=category, test_cases=test_cases, submissions=submissions)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(Text)

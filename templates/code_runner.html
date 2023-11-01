@@ -41,6 +41,17 @@
         let problems = {};
 
         $(function () {
+            function create_starter_code(in_fm, out_fm) {
+                const in_sig = Object.keys(in_fm).map(function (x) {
+                    return `${x}: '${in_fm[x]}'`;
+                });
+                const out_sig = out_fm.map(function (x) {
+                    return `'${x}'`;
+                });
+                return `def main(${in_sig.join(',')}) -> ${out_sig.join(`,`)}:\n    # your code here\n    return 0`
+            }
+
+
             const $problemSelector = $("#problem_selector");
             $("#category_selector").on("click", "a", function () {
                 let text = $(this).html();
@@ -79,10 +90,9 @@
                 $("#validate").prop("disabled", false);
                 const this_problem = problems[problem_id];
                 const editor = ace.edit("editor");
-                const in_fm = this_problem['input_format'];
-                const out_fm = this_problem['output_format'];
-                let code = `def main(${in_fm}) -> ${out_fm}:\n    # your code here\n    return 0`
-                editor.setValue(code);
+                const in_fm = JSON.parse(this_problem['input_format']);
+                const out_fm = JSON.parse(this_problem['output_format']);
+                editor.setValue(create_starter_code(in_fm, out_fm));
                 editor.clearSelection();
                 $("#description_th").html(this_problem['description_th']);
                 $("#description_en").html(this_problem['description_en']);
@@ -117,7 +127,9 @@
                             raised_hidden--;
                             break
                     }
-                    $result_table.append(`<tr class='${test[1]}'><td>${test[0]}</td><td>${status}</td><td>${test[2]}</td></tr>`);
+                    let inputs = JSON.parse(test[0]);
+                    inputs = Object.keys(inputs).map(function(k){return `${k} = ${inputs[k]}`}).join("<br>");
+                    $result_table.append(`<tr class='${test[1]}'><td>${inputs}</td><td>${status}</td><td>${test[2]}</td></tr>`);
                 }
 
                 $("#passed_messages").html(`You passed ${passed} test(s) and ${passed_hidden} hidden test(s)`);
@@ -133,10 +145,15 @@
                 }
                 $("#passed").html(passed + passed_hidden);
                 $("#failed").html(failed + failed_hidden);
-                $("#raised").html(raised + raised_hidden);
+                $("#raised").html(raised + raised_hidden + timeout);
             }
 
             $("#validate").on("click", function () {
+                const $result_table = $("#results tbody");
+                $result_table.empty();
+                $("#passed_messages").html("");
+                $("#failed_messages").html("");
+                $("#raised_messages").html("");
                 const editor = ace.edit("editor");
                 const body = JSON.stringify({
                     "problem_id": $problemSelector.data("problem_id"),
@@ -215,8 +232,8 @@
                         <thead>
                         <tr>
                             <th scope="col" style="width:30%">input</th>
-                            <th scope="col" style="width:10%">result</th>
-                            <th scope="col" style="width:60%">note</th>
+                            <th scope="col" style="width:15%">result</th>
+                            <th scope="col" style="width:55%">note</th>
                         </tr>
                         </thead>
                         <tbody>

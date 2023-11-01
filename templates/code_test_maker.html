@@ -31,6 +31,18 @@
             color: white;
             background-color: red
         }
+
+        .test_val {
+            width: 90px
+        }
+
+        .var_type {
+            width: 90px
+        }
+
+        .var_name {
+            width: 60px
+        }
     </style>
     <script>
 
@@ -48,6 +60,16 @@
                 $('#category_selector').val($(this).data("category_id"));
                 $("#submit").prop("disabled", false);
             });
+
+            function create_starter_code(in_fm, out_fm) {
+                const in_sig = Object.keys(in_fm).map(function (x) {
+                    return `${x}: '${in_fm[x]}'`;
+                });
+                const out_sig = out_fm.map(function (x) {
+                    return `'${x}'`;
+                });
+                return `def main(${in_sig.join(',')}) -> ${out_sig.join(`,`)}:\n    # your code here\n    return 0`
+            }
 
             function update_feedback(data) {
                 let results = data[0]
@@ -77,7 +99,11 @@
                             raised_hidden--;
                             break
                     }
-                    $result_table.append(`<tr class='${test[1]}'><td>${test[0]}</td><td>${status}</td><td>${test[2]}</td></tr>`);
+                    let inputs = JSON.parse(test[0]);
+                    inputs = Object.keys(inputs).map(function (k) {
+                        return `${k} = ${inputs[k]}`
+                    }).join("<br>");
+                    $result_table.append(`<tr class='${test[1]}'><td>${inputs}</td><td>${status}</td><td>${test[2]}</td></tr>`);
                 }
 
                 $("#passed_messages").html(`You passed ${passed} test(s) and ${passed_hidden} hidden test(s)`);
@@ -88,11 +114,84 @@
                 $("#raised").html(raised + raised_hidden);
             }
 
+            function selector_th_html() {
+                return `<th><select class="var_type">
+<option value="int">int</option>
+<option value="float">float</option>
+<option value="str">str</option>
+<option value="list_int">list of int</option>
+<option value="list_float">list of float</option>
+</select></th>`;
+            }
+
+            function var_name_th_html() {
+                return `<th scope="col" style="table-layout: fixed">
+<input type="text" value="x${$("#test_cases tr").eq(0).find("th").length - 1}" class="var_name"/>
+<button type="button" class="btn-close" aria-label="Close"></button>
+</th>`;
+            }
+
+            function has_duplicates(array) {
+                return (new Set(array)).size !== array.length;
+            }
+
+            function gather_func_sig() {
+                const var_names = $("#test_cases .var_name").map(function () {
+                    return $(this).val();
+                }).toArray();
+                const var_types = $("#test_cases .var_type").map(function () {
+                    return $(this).val();
+                }).toArray();
+
+                if (has_duplicates(var_names)) {
+                    throw new Error("var name must be unique");
+                }
+
+                let test_sigs = {};
+                for (let i = 0; i < var_names.length; i++) {
+                    test_sigs[var_names[i]] = var_types[i];
+                }
+                return test_sigs;
+            }
+
+            function gather_test_cases() {
+                const var_names = $("#test_cases .var_name").map(function () {
+                    return $(this).val();
+                }).toArray();
+                let test_vals = $("#test_cases .test_val").map(function () {
+                    return $(this).val();
+                }).toArray();
+
+                if (has_duplicates(var_names)) {
+                    throw new Error("var name must be unique");
+                }
+
+                let test_cases = [];
+
+                while (test_vals.length > 0) {
+                    let test_case = {};
+                    for (let i = 0; i < var_names.length; i++) {
+                        test_case[var_names[i]] = test_vals.pop();
+                    }
+                    test_cases.push(test_case);
+                }
+                return test_cases;
+            }
+
             $("#validate").on("click", function () {
+                let test_inputs;
+                let input_format;
+                try {
+                    test_inputs = gather_test_cases();
+                    input_format = gather_func_sig();
+                } catch (e) {
+                    alert(e);
+                }
                 const editor = ace.edit("editor");
                 const body = JSON.stringify({
                     "code": editor.getValue(0),
-                    "test_inputs": $("#test_inputs").val(),
+                    "test_inputs": test_inputs,
+                    "input_format": input_format,
                 });
                 $.ajax({
                     url: "/coding/code_test",
@@ -134,6 +233,48 @@
                 });
             });
 
+            $("#generate_starter").click(function () {
+                const editor = ace.edit("editor");
+                const in_fm = gather_func_sig();
+                Object.keys(in_fm).forEach(function (k) {
+                    switch (in_fm[k]) {
+                        case "list_int":
+                            in_fm[k] = "List[int]";
+                            break;
+                        case "list_float":
+                            in_fm[k] = "List[float]";
+                            break;
+                    }
+                });
+                const out_fm = ['float'];
+                editor.setValue(create_starter_code(in_fm, out_fm));
+                editor.clearSelection();
+            });
+
+            let $addTestCase = $("#add_test_case");
+            $addTestCase.click(function () {
+                let $table_rows = $('#test_cases tr');
+                let new_row = `<tr>`;
+                new_row = new_row + `<td>test case ${$table_rows.length - 1}:</td>`;
+                for (let i = 0; i < $table_rows.eq(0).find('th').length - 2; i++) {
+                    new_row = new_row + `<td><input type="text" value="" class="test_val"/></td>`;
+                }
+                new_row = new_row + `<td></td></tr>`;
+                $table_rows.eq(-1).after(new_row);
+            });
+
+            let $addVar = $("#add_var");
+            $addVar.click(function () {
+                let $testCases = $('#test_cases');
+                $testCases.find('tr').eq(0).find('th').eq(-2).after(`${var_name_th_html()}`);
+                $testCases.find('tr').eq(1).find('th').eq(-2).after(`${selector_th_html()}`);
+                $testCases.find('tr').each(function () {
+                    $(this).find('td').eq(-1).before(`<td><input type="text" value="" class="test_val"/></td>`);
+                });
+            });
+
+            $addVar.trigger("click");
+            $addTestCase.trigger("click");
         });
 
     </script>
@@ -160,14 +301,7 @@
                     <span class="input-group-text" style="width:160px">คำอธิบาย (ไทย)</span>
                     <textarea id="description_th" class="form-control" aria-label="With textarea"></textarea>
                 </div>
-                <h3>
-                    <span class="badge bg-success" style="margin:10px">correct
-                        <span id="passed" class="badge bg-light text-dark">0</span></span>
-                    <span class="badge bg-danger" style="margin:10px">incorrect
-                        <span id="failed" class="badge bg-light text-dark">0</span></span>
-                    <span class="badge bg-warning" style="margin:10px">error
-                        <span id="raised" class="badge bg-light text-dark">0</span></span>
-                </h3>
+                <input type="button" value="Generate starter code using input/output signature" id="generate_starter">
                 <div id="editor">
                 </div>
                 <script>
@@ -175,16 +309,39 @@
                     editor.setTheme("ace/theme/monokai");
                     editor.session.setMode("ace/mode/python");
                 </script>
+                <h3>Input</h3>
+                <table id="test_cases" class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col" style="table-layout: fixed">var name:</th>
 
-                <div class="input-group">
-                    <span class="input-group-text" style="width:160px">test inputs</span>
-                    <textarea id="test_inputs" class="form-control" aria-label="With textarea" rows="10"></textarea>
-                </div>
+                        <th scope="col" style="table-layout: fixed">
+                            <button id="add_var">Add Variable</button>
+                        </th>
+                    </tr>
+                    <tr>
+                        <th>type:</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+                <input type="button" class="btn btn-secondary" id="add_test_case" value="Add Test Case"><br>
                 <input type="button" class="btn btn-primary" value="validate" id="validate">
                 <input type="button" class="btn btn-primary" value="create this problem" id="submit" disabled>
             </div>
             <div class="col">
                 <div id="feedback">
+
+                    <h3>
+                    <span class="badge bg-success" style="margin:10px">correct
+                        <span id="passed" class="badge bg-light text-dark">0</span></span>
+                        <span class="badge bg-danger" style="margin:10px">incorrect
+                        <span id="failed" class="badge bg-light text-dark">0</span></span>
+                        <span class="badge bg-warning" style="margin:10px">error
+                        <span id="raised" class="badge bg-light text-dark">0</span></span>
+                    </h3>
                     <h3>Feedback</h3>
                     <table id="results" class="table">
                         <thead>
