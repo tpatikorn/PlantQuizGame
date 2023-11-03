@@ -33,7 +33,7 @@ def fetch_problems():
 def code_create_problem():
     if "user" not in session.keys():
         return "You cannot test code while not logged in.", 403
-    from managers.test_sandbox import SandboxPython
+    from managers.test_sandbox import PythonSandbox
     body = request.get_json()
     new_problem_id = coding_manager.create_problem(name=body["name"],
                                                    category_id=body["category_id"],
@@ -46,7 +46,7 @@ def code_create_problem():
     test_cases = [
         TestCase(id=0, problem_id=0, test_inputs=test_input, test_outputs=0, public=True, active=True, problem=None)
         for test_input in body["test_inputs"].split("\n")]
-    sb = SandboxPython()
+    sb = PythonSandbox()
     results = sb.run(code, test_cases, result_only=True)
     for test_case in results[0]:
         coding_manager.create_test_case(problem_id=new_problem_id, test_inputs=test_case[0], test_outputs=test_case[2],

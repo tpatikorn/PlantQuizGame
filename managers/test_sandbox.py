@@ -1,4 +1,5 @@
 import json
+import traceback
 from functools import partial
 from typing import List, Tuple, Dict
 from pebble import ProcessPool
@@ -30,24 +31,29 @@ def convert(value_dict: Dict[str, any], type_dict: Dict[str, str]):
     return value_dict
 
 
-class SandboxPython:
+class PythonSandbox:
+    builtin_functions = ["abs", "aiter", "all", "anext", "any", "ascii", "bin", "bool", "breakpoint",
+                         "bytearray", "bytes", "callable", "chr", "classmethod", "compile", "complex",
+                         "delattr", "dict", "dir", "divmod", "enumerate", "eval", "exec", "filter", "float",
+                         "format", "frozenset", "getattr", "globals", "hasattr", "hash", "help", "hex", "id",
+                         "input", "int", "isinstance", "issubclass", "iter", "len", "list", "locals", "map",
+                         "max", "memoryview", "min", "next", "object", "oct", "open", "ord", "pow", "print",
+                         "property", "range", "repr", "reversed", "round", "set", "setattr", "slice",
+                         "sorted", "staticmethod", "str", "sum", "super", "tuple", "type", "vars", "zip"]
 
-    def __init__(self, base_restricted_functions=None, base_restricted_imports=None,
-                 additional_restricted_functions=None, additional_restricted_imports=None, timeout=1):
+    def __init__(self, restricted_functions: List[str] = None, restricted_imports: List[str] = None, timeout=1):
         self.timeout = timeout
-        self.restricted_functions = base_restricted_functions or ['open', 'input']
-        if additional_restricted_functions is not None:
-            self.restricted_functions.extend(additional_restricted_functions)
-
-        self.restricted_imports = base_restricted_imports or ['sys', 'os', 'subprocess']
-        if additional_restricted_imports is not None:
-            self.restricted_imports.extend(additional_restricted_imports)
+        self.restricted_functions = (restricted_functions or [])
+        self.restricted_functions.extend(["breakpoint", "compile", "dir", "help", "eval", "globals",
+                                          "exec", 'input', "locals", 'open', "print"])
+        self.restricted_imports = (restricted_imports or [])
+        self.restricted_imports.extend(['sys', 'os', 'subprocess'])
 
     def construct_function(self, function_name):
-        return lambda *_: self.raise_exception(function_name, *_)
+        return lambda *_: self.raise_exception(function_name, _)
 
-    def raise_exception(self, func_name, *a):
-        raise RuntimeError(f"can't call this function! '{func_name}' with arguments '{','.join(a)}'")
+    def raise_exception(self, func_name, a):
+        raise RuntimeError(f"Do not use this function for this problem: '{func_name}'")
 
     def custom_import(self, name, custom_globals=None, custom_locals=None, fromlist=(), level=0):
         if name in self.restricted_imports:
@@ -59,12 +65,14 @@ class SandboxPython:
         try:
             restricted_globals = {'__builtins__': {}}
             restricted_locals = {'__builtins__': {}}
-            for fn in self.restricted_functions:
-                restricted_globals[fn] = self.construct_function(fn)
+            for fn in PythonSandbox.builtin_functions:
+                if fn in self.restricted_functions:
+                    restricted_globals[fn] = self.construct_function(fn)
+                else:
+                    restricted_globals[fn] = globals()['__builtins__'][fn]
             restricted_globals['__builtins__']['__import__'] = self.custom_import
             restricted_globals['__builtins__']['__build_class__'] = __build_class__
             restricted_globals['__builtins__']['__name__'] = __name__
-
             # Compile and execute the user's code within the restricted environment
             exec(target_code, restricted_globals, restricted_locals)
             # Execute the 'main' function with the provided arguments
@@ -108,7 +116,6 @@ class SandboxPython:
             while True:
                 try:
                     test_inputs, status, message = next(iterator)
-                    print(test_inputs, status, message)
                     if message is not None:
                         results.append((test_inputs, status, message))
                     if status == "passed":
@@ -121,12 +128,11 @@ class SandboxPython:
                     timed_counts = timed_counts + 1
                 except StopIteration:
                     break
-        print(results)
         return results, passed_counts, failed_counts, raised_counts, timed_counts
 
 
 if __name__ == "__main__":
-    sb = SandboxPython()
+    sb = PythonSandbox()
     # Python code as text
     test_code1 = """
 import random
@@ -150,6 +156,6 @@ def main(arg):
 def main(arg):
     return arg +5
     """
-    sb2 = SandboxPython()
+    sb2 = PythonSandbox()
     result = sb2.run(code=test_code2, test_cases=[tc1, tc2, tc3])
     print(*result, sep="\n")
