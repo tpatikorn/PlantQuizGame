@@ -62,7 +62,8 @@ class SandboxPython:
             for fn in self.restricted_functions:
                 restricted_globals[fn] = self.construct_function(fn)
             restricted_globals['__builtins__']['__import__'] = self.custom_import
-            restricted_locals['__builtins__']['__import__'] = self.custom_import
+            restricted_globals['__builtins__']['__build_class__'] = __build_class__
+            restricted_globals['__builtins__']['__name__'] = __name__
 
             # Compile and execute the user's code within the restricted environment
             exec(target_code, restricted_globals, restricted_locals)
