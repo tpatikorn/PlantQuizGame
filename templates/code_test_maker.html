@@ -68,7 +68,7 @@
                 const out_sig = out_fm.map(function (x) {
                     return `'${x}'`;
                 });
-                return `def main(${in_sig.join(',')}) -> ${out_sig.join(`,`)}:\n    # your code here\n    return 0`
+                return `def main(${in_sig.join(', ')}) -> ${out_sig.join(`, `)}:\n`
             }
 
             function update_feedback(data) {
@@ -233,7 +233,7 @@
                 });
             });
 
-            $("#generate_starter").click(function () {
+            function generate_starter() {
                 const editor = ace.edit("editor");
                 const in_fm = gather_func_sig();
                 Object.keys(in_fm).forEach(function (k) {
@@ -247,9 +247,9 @@
                     }
                 });
                 const out_fm = ['float'];
-                editor.setValue(create_starter_code(in_fm, out_fm));
+                editor.session.replace(new ace.Range(0, 0, 1, 0), create_starter_code(in_fm, out_fm));
                 editor.clearSelection();
-            });
+            }
 
             let $addTestCase = $("#add_test_case");
             $addTestCase.click(function () {
@@ -262,7 +262,6 @@
                 new_row = new_row + `<td></td></tr>`;
                 $table_rows.eq(-1).after(new_row);
             });
-
             let $addVar = $("#add_var");
             $addVar.click(function () {
                 let $testCases = $('#test_cases');
@@ -271,10 +270,15 @@
                 $testCases.find('tr').each(function () {
                     $(this).find('td').eq(-1).before(`<td><input type="text" value="" class="test_val"/></td>`);
                 });
+                generate_starter();
             });
 
             $addVar.trigger("click");
             $addTestCase.trigger("click");
+
+            $("#test_cases").on("input", ".var_name,.var_type", function () {
+                generate_starter();
+            });
         });
 
     </script>
@@ -308,6 +312,8 @@
                     let editor = ace.edit("editor");
                     editor.setTheme("ace/theme/monokai");
                     editor.session.setMode("ace/mode/python");
+                    editor.setValue("def main(x1: 'int') -> 'float':\n    # your code here\n    return 0");
+                    editor.clearSelection();
                 </script>
                 <h3>Input</h3>
                 <table id="test_cases" class="table">
