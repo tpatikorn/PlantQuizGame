@@ -53,7 +53,8 @@
         let problems = {};
 
         $(function () {
-            $("#category_selector").on("click", "a", function () {
+            let $categorySelector = $("#category_selector");
+            $categorySelector.on("click", "a", function () {
                 let text = $(this).html();
                 let htmlText = text + ' <span class="caret"></span>';
                 $(this).closest('.dropdown').find('.dropdown-toggle').html(htmlText);
@@ -135,7 +136,7 @@
                 return (new Set(array)).size !== array.length;
             }
 
-            function gather_func_sig() {
+            function gather_func_sig(force_public = true) {
                 const var_names = $("#test_cases .var_name").map(function () {
                     return $(this).val();
                 }).toArray();
@@ -194,7 +195,7 @@
                     "input_format": input_format,
                 });
                 $.ajax({
-                    url: "/coding/code_test",
+                    url: "/coding/test_problem",
                     type: "POST",
                     data: body,
                     contentType: "application/json",
@@ -208,19 +209,31 @@
             });
 
             $("#submit").on("click", function () {
+                const flags = $("#test_cases .form-check-input").map(function () {
+                    return $(this).is(":checked")
+                }).toArray();
+                let test_inputs;
+                let input_format;
+                try {
+                    test_inputs = gather_test_cases();
+                    input_format = gather_func_sig();
+                } catch (e) {
+                    alert(e);
+                }
                 const editor = ace.edit("editor");
                 const body = JSON.stringify({
-                    "name": "test",
+                    "name": $("#name").val(),
                     "code": editor.getValue(0),
-                    "test_inputs": $("#test_inputs").val(),
+                    "test_inputs": test_inputs,
+                    "input_format": input_format,
+                    "public_flags": flags,
                     "description_en": $("#description_en").val(),
                     "description_th": $("#description_th").val(),
-                    "category_id": $("#category_selector").val(),
-                    "input_format": "x->'float'",
-                    "output_format": 'float',
+                    "category_id": $categorySelector.val(),
+                    "output_format": ["float"],
                 });
                 $.ajax({
-                    url: "/coding/code_create_problem",
+                    url: "/coding/create_problem",
                     type: "POST",
                     data: body,
                     contentType: "application/json",
@@ -256,7 +269,8 @@
                 let $table_rows = $('#test_cases tr');
                 let new_row = `<tr>`;
                 new_row = new_row + `<td>test case ${$table_rows.length - 1}:</td>`;
-                for (let i = 0; i < $table_rows.eq(0).find('th').length - 2; i++) {
+                new_row = new_row + `<td><input class="form-check-input" type="checkbox" value="True"></td>`;
+                for (let i = 0; i < $table_rows.eq(0).find('th').length - 3; i++) {
                     new_row = new_row + `<td><input type="text" value="" class="test_val"/></td>`;
                 }
                 new_row = new_row + `<td></td></tr>`;
@@ -298,14 +312,17 @@
                     </ul>
                 </div>
                 <div class="input-group">
+                    <span class="input-group-text" style="width:160px">ชื่อ test</span>
+                    <input id="name" class="form-control" aria-label="test name"></input>
+                </div>
+                <div class="input-group">
                     <span class="input-group-text" style="width:160px">คำอธิบาย (อังกฤษ)</span>
-                    <textarea id="description_en" class="form-control" aria-label="With textarea"></textarea>
+                    <textarea id="description_en" class="form-control" aria-label="test description in English"></textarea>
                 </div>
                 <div class="input-group">
                     <span class="input-group-text" style="width:160px">คำอธิบาย (ไทย)</span>
-                    <textarea id="description_th" class="form-control" aria-label="With textarea"></textarea>
+                    <textarea id="description_th" class="form-control" aria-label="test description in Thai"></textarea>
                 </div>
-                <input type="button" value="Generate starter code using input/output signature" id="generate_starter">
                 <div id="editor">
                 </div>
                 <script>
@@ -320,13 +337,14 @@
                     <thead>
                     <tr>
                         <th scope="col" style="table-layout: fixed">var name:</th>
-
+                        <th scope="col" style="table-layout: fixed">public</th>
                         <th scope="col" style="table-layout: fixed">
                             <button id="add_var">Add Variable</button>
                         </th>
                     </tr>
                     <tr>
                         <th>type:</th>
+                        <th></th>
                         <th></th>
                     </tr>
                     </thead>

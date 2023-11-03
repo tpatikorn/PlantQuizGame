@@ -44,19 +44,19 @@ def create_problem(name: str, category_id: int, description_th: str, description
     return result.first()[0]
 
 
-# test the code against the given input
-def test_code(code: str, problem_id: int = None, test_inputs: List[str] = None, input_format: str = None, log=True) \
+def eval_code(code: str, test_inputs: List[str] = None, input_format: str = None) \
         -> Tuple[List[Tuple[str, str, str]], int, int, int, int]:
-    if problem_id:
-        test_cases = find_test_cases(problem_id)
-    else:
-        problem_id = 0
-        problem = Problem.create_mock_problem(problem_id=problem_id, input_format=input_format,
-                                              output_format='["float"]')
-        test_cases = [
-            TestCase(id=problem_id, problem_id=problem.id, test_inputs=json.dumps(test_input), test_outputs=0,
-                     public=True, active=True, problem=problem)
-            for test_input in test_inputs]
+    problem = create_mock_problem(problem_id=0, input_format=input_format, output_format='["float"]')
+    test_cases = [create_mock_test_case(problem_id=problem.id, test_inputs=json.dumps(test_input), problem=problem)
+                  for test_input in test_inputs]
+    results = PythonSandbox().run(code, test_cases, result_only=True)
+    return results
+
+
+# test the code against the given input
+def test_code(code: str, problem_id: int = None, log: bool = True) \
+        -> Tuple[List[Tuple[str, str, str]], int, int, int, int]:
+    test_cases = find_test_cases(problem_id)
     results = PythonSandbox().run(code, test_cases, result_only=(problem_id == 0))
     if log:
         q = insert(CodeSubmission).values(problem_id=problem_id, user_id=session['user']['id'], code=code,
@@ -76,6 +76,35 @@ def submit_code(body: Dict):
             for test_input in body["test_inputs"].split("\n")]
     sb = PythonSandbox()
     return sb.run(code, test_cases, result_only=True)
+
+
+def find_problem_by_id(problem_id: int) -> Problem:
+    q = select(Problem).where(Problem.id == problem_id)
+    return g.session.scalars(q).fetchone()[0]
+
+
+def create_mock_problem(problem_id: int = 0, name: str = "mock_name", description_th: str = "mock_desc_th",
+                        description_en: str = "mock_desc_en", category_id: int = 0, input_format: str = '{"arg":"int"}',
+                        output_format: str = '["int"]', active: bool = True, category: Category = None,
+                        test_cases: list[TestCase] | None = None, submissions: List['CodeSubmission'] | None = None):
+    if submissions is None:
+        submissions = [None]
+    if test_cases is None:
+        test_cases = [None]
+    return Problem(id=problem_id, name=name, description_th=description_th, description_en=description_en,
+                   category_id=category_id, input_format=input_format, output_format=output_format, active=active,
+                   category=category, test_cases=test_cases, submissions=submissions)
+
+
+def create_mock_test_case(test_case_id: int = 0, problem_id: int = 0, test_inputs: str = "{}", test_outputs: str = '0',
+                          public: bool = True, active: bool = True, problem: Problem = None) -> TestCase:
+    if problem is None:
+        if problem_id > 0:
+            problem = find_problem_by_id(problem_id)
+        else:
+            problem = create_mock_problem(problem_id=problem_id)
+    return TestCase(id=test_case_id, problem_id=problem_id, test_inputs=test_inputs, test_outputs=test_outputs,
+                    public=public, active=active, problem=problem)
 
 
 if __name__ == "__main__":

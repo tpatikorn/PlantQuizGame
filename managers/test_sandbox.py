@@ -96,6 +96,7 @@ class PythonSandbox:
                 else:
                     return None, "failed", None
         except Exception as e:
+            traceback.print_exception(e)
             if target_test.public:
                 return target_test.test_inputs, "raised", f"{type(e).__name__}: {str(e)}"
             else:
@@ -142,7 +143,9 @@ def main(arg):
             print(l)
         return arg * 2
     """
-    p = Problem.create_mock_problem(problem_id=0, input_format='{"arg":"int"}', output_format="int")
+    p = Problem(id=0, name="test", description_th="test", description_en="test",
+                category_id=0, input_format='{"arg":"int"}', output_format='["int"]', active=True,
+                category=None, test_cases=[None], submissions=[None])
     tc1 = TestCase(id=0, problem_id=0, test_inputs='{"arg":5}', test_outputs='10', public=True, active=True,
                    problem=p)
     tc2 = TestCase(id=0, problem_id=0, test_inputs='{"arg":6}', test_outputs='12', public=True, active=True,
