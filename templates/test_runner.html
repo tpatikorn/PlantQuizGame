@@ -41,6 +41,21 @@
         let problems = {};
 
         $(function () {
+            function fetch_best_score(problem_id) {
+                $("#best_score").html("--.--%");
+                $.ajax({
+                    url: `/coding/fetch_best_score?problem_id=${problem_id}`,
+                    type: "GET",
+                    contentType: "application/json",
+                    success: function (data) {
+                        $("#best_score").html((data*100).toFixed(2)+"%");
+                    },
+                    error: function (xhr) {
+                        console.log(xhr);
+                    }
+                });
+            }
+
             function create_starter_code(in_fm, out_fm) {
                 const in_sig = Object.keys(in_fm).map(function (x) {
                     return `${x}: '${in_fm[x]}'`;
@@ -96,6 +111,7 @@
                 editor.clearSelection();
                 $("#description_th").html(this_problem['description_th']);
                 $("#description_en").html(this_problem['description_en']);
+                fetch_best_score(problem_id);
             });
 
             function update_feedback(data) {
@@ -128,7 +144,9 @@
                             break
                     }
                     let inputs = JSON.parse(test[0]);
-                    inputs = Object.keys(inputs).map(function(k){return `${k} = ${inputs[k]}`}).join("<br>");
+                    inputs = Object.keys(inputs).map(function (k) {
+                        return `${k} = ${inputs[k]}`
+                    }).join("<br>");
                     $result_table.append(`<tr class='${test[1]}'><td>${inputs}</td><td>${status}</td><td>${test[2]}</td></tr>`);
                 }
 
@@ -150,13 +168,14 @@
 
             $("#validate").on("click", function () {
                 const $result_table = $("#results tbody");
+                const problem_id = $problemSelector.data("problem_id");
                 $result_table.empty();
                 $("#passed_messages").html("");
                 $("#failed_messages").html("");
                 $("#raised_messages").html("");
                 const editor = ace.edit("editor");
                 const body = JSON.stringify({
-                    "problem_id": $problemSelector.data("problem_id"),
+                    "problem_id": problem_id,
                     "code": editor.getValue(0)
                 });
                 $.ajax({
@@ -166,6 +185,7 @@
                     contentType: "application/json",
                     success: function (data) {
                         update_feedback(data);
+                        fetch_best_score(problem_id);
                     },
                     error: function (xhr, exception) {
                         alert(xhr.responseText);
@@ -209,12 +229,8 @@
                 หลังจากนั้นก็สามารถ code ได้เลย และเมื่อรู้สึกว่า code น่าจะพัง เอ๊ย ผ่านแล้ว ลองกด validate เพื่อทดสอบ code ได้เลย
                 code จะถูกทดสอบกับ test cases ที่ระบบทำไว้แล้วจะแสดงผลในตารางทางขวา โดยที่ test จะมีทั้ง
                     public คือ เห็นได้เลยว่า input ที่ code ทำผ่าน(หรือพัง) คืออะไร และ hidden คือ จะรู้แค่ว่า code ผ่านหรือพัง</span><br>
-                <h3><span class="badge bg-success">correct
-        <span id="passed" class="badge bg-light text-dark">0</span></span>
-                    <span class="badge bg-danger">incorrect
-        <span id="failed" class="badge bg-light text-dark">0</span></span>
-                    <span class="badge bg-warning">error
-        <span id="raised" class="badge bg-light text-dark">0</span></span></h3>
+                <h3><span class="badge bg-info">Best score
+        <span id="best_score" class="badge bg-light text-dark">0</span></span></h3>
                 <div id="editor">
                 </div>
                 <script>
@@ -226,6 +242,12 @@
                 <input type="button" class="btn btn-primary" value="validate" id="validate" disabled>
             </div>
             <div class="col">
+                <h3><span class="badge bg-success">correct
+        <span id="passed" class="badge bg-light text-dark">0</span></span>
+                    <span class="badge bg-danger">incorrect
+        <span id="failed" class="badge bg-light text-dark">0</span></span>
+                    <span class="badge bg-warning">error
+        <span id="raised" class="badge bg-light text-dark">0</span></span></h3>
                 <div id="feedback">
                     <h3>Feedback</h3>
                     <table id="results" class="table">

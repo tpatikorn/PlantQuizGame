@@ -1,4 +1,4 @@
-from flask import g
+from flask import g, session
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import noload
@@ -25,3 +25,10 @@ def upsert_user_google(email, given_name, family_name, name, picture) -> User:
     result = g.session.execute(q)
     g.session.commit()
     return find_user_with_id(result.first()[0])
+
+
+def find_current_user_id():
+    try:
+        return session['user']['id']
+    except KeyError:
+        return -1

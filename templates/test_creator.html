@@ -172,7 +172,7 @@
                 while (test_vals.length > 0) {
                     let test_case = {};
                     for (let i = 0; i < var_names.length; i++) {
-                        test_case[var_names[i]] = test_vals.pop(0);
+                        test_case[var_names[i]] = test_vals.shift();
                     }
                     test_cases.push(test_case);
                 }

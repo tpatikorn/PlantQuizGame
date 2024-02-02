@@ -61,7 +61,7 @@ class PythonSandbox:
         return __import__(name, custom_globals, custom_locals, fromlist, level)
 
     # run the code in the sandbox
-    def test_target_code(self, target_test: TestCase, target_code, result_only):
+    def test_target_code(self, target_test: TestCase, target_code, result_only, verbose=False):
         try:
             restricted_globals = {'__builtins__': {}}
             restricted_locals = {'__builtins__': {}}
@@ -96,7 +96,8 @@ class PythonSandbox:
                 else:
                     return None, "failed", None
         except Exception as e:
-            traceback.print_exception(e)
+            if verbose:
+                traceback.print_exception(e)
             if target_test.public:
                 return target_test.test_inputs, "raised", f"{type(e).__name__}: {str(e)}"
             else:

@@ -28,12 +28,18 @@ def fetch_problems():
     return [_.to_json() for _ in results]
 
 
+@bp.route('/fetch_best_score')
+def fetch_best_score():
+    if "user" in session.keys():
+        result = coding_manager.find_best_score(problem_id=int(request.args.get("problem_id")))
+    else:
+        result = 0
+    return jsonify(result)
+
+
 @bp.route('/create_problem', methods=["POST"])
 @login_required
 def create_problem():
-    if "user" not in session.keys():
-        return "You cannot test code while not logged in.", 403
-    from managers.test_sandbox import PythonSandbox
     body = request.get_json()
     results = eval_code(body["code"],
                         test_inputs=body["test_inputs"],

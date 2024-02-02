@@ -1,14 +1,14 @@
 import json
 
 from flask import g, session
-from sqlalchemy import select, func
+from sqlalchemy import select, and_
 from typing import List, Dict, Tuple
 
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import joinedload
 
 from managers.test_sandbox import PythonSandbox
-from models.db_models import TestCase, Problem, Category, CodeSubmission
+from models.db_models import TestCase, Problem, Category, CodeSubmission, User
 
 
 def find_test_cases(problem_id: int) -> List[TestCase]:
@@ -81,6 +81,18 @@ def submit_code(body: Dict):
 def find_problem_by_id(problem_id: int) -> Problem:
     q = select(Problem).where(Problem.id == problem_id)
     return g.session.scalars(q).fetchone()[0]
+
+
+def find_best_score(problem_id: int) -> float:
+    q = select(CodeSubmission).where(and_(CodeSubmission.problem_id == problem_id, CodeSubmission.user_id == session['user']['id']))
+    submissions = g.session.scalars(q).fetchall()
+    best_score = 0
+    print(len(submissions), problem_id, session['user']['id'])
+    for s in submissions:
+        new_score = s.passed/(s.passed + s.failed + s.raised)
+        if new_score > best_score:
+            best_score = new_score
+    return best_score
 
 
 def create_mock_problem(problem_id: int = 0, name: str = "mock_name", description_th: str = "mock_desc_th",
