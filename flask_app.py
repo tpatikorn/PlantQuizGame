@@ -52,7 +52,7 @@ if __name__ == "__main__":
 
     import auth
     import game
-    import coding
+    import coding   
 
     this_app.register_blueprint(auth.bp)
     this_app.register_blueprint(game.bp)
@@ -60,4 +60,4 @@ if __name__ == "__main__":
 
     auth.oauth.init_app(this_app)
 
-    socketio.run(this_app, "127.0.0.1", 8080)
+    socketio.run(this_app, "127.0.0.1", 8081)

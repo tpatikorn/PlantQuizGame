@@ -1,8 +1,11 @@
 import os
 from functools import wraps
 
+import requests
 from authlib.integrations.flask_client import OAuth
 from flask import Blueprint, redirect, session, url_for
+from werkzeug.exceptions import BadRequestKeyError
+
 from managers import user_manager
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
@@ -27,22 +30,21 @@ def login_required(func):
             return "You cannot test code while not logged in.", 403
         else:
             return func(*args, **kwargs)
+
     return check_login
+
+
+from google.oauth2 import id_token
+from flask import request
+from google.auth.transport.requests import Request
 
 
 @bp.route('/login', methods=['POST', 'GET'])
 def login():
-    redirect_uri = url_for('auth.callback', _external=True, _scheme="https")
-    return oauth.google.authorize_redirect(redirect_uri)
-
-
-@bp.route('/callback')
-def callback():
-    token = oauth.google.authorize_access_token()
-    user = token['userinfo']
-
-    new_user = user_manager.upsert_user_google(email=user.email, given_name=user.given_name,
-                                               family_name=user.family_name, name=user.name, picture=user.picture)
+    idinfo = id_token.verify_oauth2_token(request.form['credential'], Request(), os.getenv('GOOGLE_CLIENT_ID'))
+    new_user = user_manager.upsert_user_google(email=idinfo["email"], given_name=idinfo["given_name"],
+                                               family_name=idinfo["family_name"], name=idinfo["name"],
+                                               picture=idinfo["picture"])
     session['user'] = new_user
     return redirect('/index')
 
