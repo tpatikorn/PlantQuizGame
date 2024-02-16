@@ -41,12 +41,13 @@ from google.auth.transport.requests import Request
 
 @bp.route('/login', methods=['POST', 'GET'])
 def login():
-    idinfo = id_token.verify_oauth2_token(request.form['credential'], Request(), os.getenv('GOOGLE_CLIENT_ID'))
-    new_user = user_manager.upsert_user_google(email=idinfo["email"], given_name=idinfo["given_name"],
-                                               family_name=idinfo["family_name"], name=idinfo["name"],
-                                               picture=idinfo["picture"])
+    print(request.headers["Referer"])
+    user = id_token.verify_oauth2_token(request.form['credential'], Request(), os.getenv('GOOGLE_CLIENT_ID'))
+    new_user = user_manager.upsert_user_google(email=user["email"], given_name=user["given_name"],
+                                               family_name=user["family_name"], name=user["name"],
+                                               picture=user["picture"])
     session['user'] = new_user
-    return redirect('/index')
+    return redirect(request.headers["Referer"])
 
 
 @bp.route('/logout')
