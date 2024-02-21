@@ -14,7 +14,7 @@ def get_admin_page():
 
 @bp.route('/client')
 def get_client_page():
-    return render_template("poll_client.html")
+    return render_template("poll_client.html", room_code=request.args.get("room_code"))
 
 
 @bp.post('/create_question')

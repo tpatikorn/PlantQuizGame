@@ -9,7 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
             integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
             crossorigin="anonymous"></script>
-
+    <link rel="stylesheet" href="{{ url_for("static", filename="poll.css") }}"/>
     <script type="text/javascript">
         $(function () {
             const room_code = "{{ room_code }}";
@@ -22,7 +22,13 @@
             });
 
             socket.on('poll_open_question', function (data) {
-                console.log(data);
+                $(".choices").css("display", "none");
+                $("#received_question").html(data[0][1]).data("question-id", data[0][0]);
+                for (let i = 0; i < data[1].length; i++) {
+                    $("#received_choice_" + i).data("choice-id", data[1][i][0]).css("display", "flex");
+                    $("#received_choice_text_" + i).html(data[1][i][1]);
+                    $("#received_choice_vote_" + i).html(0);
+                }
             });
             socket.on('poll_close_question', function (data) {
                 console.log(data);
@@ -34,20 +40,15 @@
             $("#new_question").on("click", function () {
                 let $question = $("#question").val();
                 let $choices = [];
-                for(let i = 0; i < 10; i++) {
-                    const choice_selector = $("#choice_"+i);
-                    if((choice_selector.length > 0) && choice_selector.val().length > 0) {
+                for (let i = 0; i < 10; i++) {
+                    const choice_selector = $("#choice_" + i);
+                    if ((choice_selector.length > 0) && choice_selector.val().length > 0) {
                         $choices.push(choice_selector.val());
                     }
                 }
                 let $data = [room_code, $question, $choices];
                 console.log($data);
                 socket.emit('poll_open_question_event', $data);
-            });
-            $("#chat_send").on("click", function () {
-                let $chat_input = $("#chat_send_input");
-                socket.emit('chat', ["{{ session['user'].name }}", $chat_input.val(), get_game_data("room")]);
-                $chat_input.val('');
             });
         });
 
@@ -59,7 +60,8 @@
             <input type="text" class="form-control" placeholder="question" aria-label="question" id="question"
                    aria-describedby="question-desc">
         </div>
-        {% for i in [0,1,2,3,4,5] %}
+        {% set NUM_CHOICES = 6 %}
+        {% for i in range(NUM_CHOICES) %}
             <div class="input-group mb-2 d-inline-flex align-items-center w-auto">
                 <span class="input-group-text" id="choice-desc">choice</span>
                 <input type="text" class="form-control" placeholder="choice" aria-label="choice_{{ i }}"
@@ -69,10 +71,20 @@
         <input type="button" value="GO" id="new_question">
     </div>
     <div class="content" id="question_result">
-        <span id="received_question">xxx</span>
-        <span id="received_question_id">xxx</span>
-        <span id="received_choices">xxx</span>
-        <span id="received_choices_id">xxx</span>
-
+        <span class="center-text" id="received_question" data-question-id="-1">q</span>
+        <div class="container">
+            {% for i in range(NUM_CHOICES) %}
+                <div class="row choices" id="received_choice_{{ i }}" data-choice-id="{{ i }}">
+                    <div class="col align-left col-sm-2 text-wrap border rounded-start p-2"
+                         id="received_choice_text_{{ i }}" data-choice-id="{{ i }}">
+                        text {{ i }}
+                    </div>
+                    <div class="col align-left col-sm-20 text-wrap border rounded-end p-2"
+                         id="received_choice_vote_{{ i }}" data-choice-id="{{ i }}">
+                        vote {{ i }}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
     </div>
 {% endblock %}

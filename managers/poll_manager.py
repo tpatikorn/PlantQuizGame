@@ -57,23 +57,23 @@ def find_room(room_id: int = None, room_code: str = None) -> PollRoom:
         raise KeyError("must provide at least one of room_id or room_code find_room")
 
 
-def create_question(room_code: str, question: str, choices: List[str]) -> Tuple[int, List[int]]:
-    print(question)
-    print(choices)
-    print(room_code)
+# return two things (tuple)
+# 1. a tuple of (question_id, question_text)
+# 2. a list of pairs (tuple): (choice_id, choice_text)
+def create_question(room_code: str, question: str, choices: List[str]) -> Tuple[Tuple[int, str], List[Tuple[int, str]]]:
     room_id = find_room(room_code=room_code).id
     q = insert(PollQuestion).values(room_id=room_id, question=question).returning(PollQuestion.id)
     result = g.session.execute(q)
     q_id = result.fetchall()[0][0]
-    c_ids = []
+    new_choices = []
     for choice in choices:
         print(choice)
         q = insert(PollChoice).values(question_id=q_id, choice_text=choice).returning(PollChoice.id)
         result = g.session.execute(q)
-        c_ids.append(result.fetchall()[0][0])
-    print(c_ids)
+        new_choices.append((result.fetchall()[0][0], choice))
+    print(new_choices)
     g.session.commit()
-    return q_id, c_ids
+    return (q_id, question), new_choices
 
 
 def log_answer(user_id: int, answer_id):

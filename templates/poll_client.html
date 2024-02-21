@@ -1,48 +1,37 @@
 {% extends 'base.html' %}
 
+{% block title %}POLL ROOM CODE: {{ room_code }} {% endblock %}
 {% block header %}
-    <h1>{% block title %}CHAT {{ target_type }}{% endblock %}</h1>
+    <h1><span class="badge bg-primary">POLL ROOM CODE: <span class="badge bg-black">{{ room_code }}</span></span></h1>
 {% endblock %}
 
 {% block content %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
             integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
             crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="{{ url_for("static", filename="poll.css") }}"/>
 
     <script type="text/javascript">
         $(function () {
+            const room_code = "{{ room_code }}";
             let socket = io();
+            socket.emit('poll_join_event', ["{{ session['user'].name }}", room_code]);
 
-            function handle_chat_response(data) {
-                console.log(data);
-                const username = data[0];
-                const message = data[1];
-                let appendage;
-                if (username === "{{ session['user'].name }}") {
-                    appendage = `<li class="clearfix"><div class="message-data"><span class="message-data-name"><i class="fa fa-circle you"></i>${username}</span></div><div class="message you-message">${message}</div></li>`;
-                } else {
-                    appendage = `<li class="clearfix"><div class="message-data align-right"><span class="message-data-name">${username}</span> <i class="fa fa-circle me"></i></div><div class="message me-message float-right">${message}</div></li>`;
+            socket.on('poll_open_question', function (data) {
+                $(".choices").css("display", "none");
+                $("#received_question").html(data[0][1]).data("question-id", data[0][0]);
+                for (let i = 0; i < data[1].length; i++) {
+                    $("#received_choice_text_" + i).html(data[1][i][1]).css("display", "block");
                 }
-
-                const $chat_log = $("#chat_log");
-                $("#chat_log_list").append(appendage);
-                $chat_log.animate({scrollTop: $chat_log.prop("scrollHeight")}, 200);
-            }
-
-            socket.on('chat_response', handle_chat_response);
-            socket.on('join_response', function (data) {
-                set_game_data("room", data[2]);
-                handle_chat_response(data);
             });
-            $("#chat_join").on("click", function () {
-                let $chat_join_input = $("#chat_join_input");
-                socket.emit('join', ["{{ session['user'].name }}", $chat_join_input.val()]);
-                $("#chat_join").attr("disabled", true).addClass("btn-secondary").removeClass("btn-primary");
-                $chat_join_input.attr("disabled", true);
-                $("#chat_send_input").attr("disabled", false);
-                $("#chat_send").attr("disabled", false);
+            socket.on('poll_close_question', function (data) {
+                console.log(data);
             });
-            $("#chat_send").on("click", function () {
+            socket.on('poll_post_answer', function (data) {
+                console.log(data);
+            });
+
+            $("#answer_send").on("click", function () {
                 let $chat_input = $("#chat_send_input");
                 socket.emit('chat', ["{{ session['user'].name }}", $chat_input.val(), get_game_data("room")]);
                 $chat_input.val('');
@@ -50,4 +39,26 @@
         });
 
     </script>
+
+
+    {% set NUM_CHOICES = 8 %}
+    <div class="content" id="question_result">
+        <span class="center-text" id="received_question" data-question-id="-1">waiting for a question</span>
+    </div>
+    <div class="container">
+        {% for i in range(NUM_CHOICES) %}
+            {% if i % 4 == 0 %}
+                {% if i > 0 %}
+                    </div>
+                {% endif %}
+                <div class="row text-center">
+            {% endif %}
+            <div class="col choices text-wrap border rounded h4 m-2 p-2" id="received_choice_text_{{ i }}"
+                 data-choice-id="{{ i }}">
+                choice {{ i }} Dog
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+    </div>
 {% endblock %}

@@ -69,12 +69,8 @@ if __name__ == "__main__":
         room_code: str = escape(data[0])
         question = escape(data[1])
         choices = data[2]
-        q_id, c_ids = poll_manager.create_question(room_code, question, choices)
-        print(question, type(question))
-        print(choices, type(choices))
-        print(q_id, type(q_id))
-        print(c_ids, type(c_ids))
-        emit('poll_open_question', jsonify([question, q_id, choices, c_ids]), to=room_code)
+        new_q, new_ch = poll_manager.create_question(room_code, question, choices)
+        emit('poll_open_question', [new_q, new_ch], to=room_code)
         g.session.close()
 
 
