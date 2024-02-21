@@ -1,6 +1,7 @@
 import json
+from datetime import datetime
 from typing import Optional, List
-from sqlalchemy import Boolean, ForeignKey, select, Text, Table, Column, Integer
+from sqlalchemy import Boolean, ForeignKey, select, Text, Table, Column, Integer, TIMESTAMP
 from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped, relationship, MappedAsDataclass
 
 
@@ -90,6 +91,8 @@ class User(Base):
     admin: Mapped[bool] = mapped_column(Boolean)
     active: Mapped[bool] = mapped_column(Boolean)
     submissions: Mapped[List["CodeSubmission"]] = relationship(back_populates="user", repr=False)
+    poll_rooms: Mapped["PollRoom"] = relationship(back_populates="user", repr=False)
+    poll_answers: Mapped["PollAnswer"] = relationship(back_populates="user", repr=False)
 
 
 class Language(Base):
@@ -162,6 +165,58 @@ class CodeSubmission(Base):
     active: Mapped[bool] = mapped_column(Boolean)
     user: Mapped["User"] = relationship(back_populates="submissions", repr=False)
     problem: Mapped["Problem"] = relationship(back_populates="submissions", repr=False)
+
+
+# -------------------------- POLLING -------------------------
+
+class PollRoom(Base):
+    __tablename__ = "rooms"
+    __table_args__ = {"schema": "polling"}
+    json_field_list = ["id", "user_id", "name", "code", "active"]
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    name: Mapped[str] = mapped_column(Text)
+    code: Mapped[str] = mapped_column(Text)
+    active: Mapped[bool] = mapped_column(Boolean)
+    user: Mapped["User"] = relationship(back_populates="poll_rooms", repr=False)
+    questions: Mapped[List["PollQuestion"]] = relationship(back_populates="room", repr=False)
+
+
+class PollQuestion(Base):
+    __tablename__ = "questions"
+    __table_args__ = {"schema": "polling"}
+    json_field_list = ["id", "room_id", "question", "active"]
+    id: Mapped[int] = mapped_column(primary_key=True)
+    room_id: Mapped[int] = mapped_column(ForeignKey("polling.rooms.id"))
+    question: Mapped[str] = mapped_column(Text)
+    active: Mapped[bool] = mapped_column(Boolean)
+    room: Mapped["PollRoom"] = relationship(back_populates="questions", repr=False)
+    choices: Mapped[List["PollChoice"]] = relationship(back_populates="question", repr=False)
+
+
+class PollChoice(Base):
+    __tablename__ = "choices"
+    __table_args__ = {"schema": "polling"}
+    json_field_list = ["id", "question_id", "choice_text", "active"]
+    id: Mapped[int] = mapped_column(primary_key=True)
+    question_id: Mapped[int] = mapped_column(ForeignKey("polling.questions.id"))
+    choice_text: Mapped[str] = mapped_column(Text)
+    active: Mapped[bool] = mapped_column(Boolean)
+    question: Mapped["PollQuestion"] = relationship(back_populates="choices", repr=False)
+    answers: Mapped[List["PollAnswer"]] = relationship(back_populates="choice", repr=False)
+
+
+class PollAnswer(Base):
+    __tablename__ = "answers"
+    __table_args__ = {"schema": "polling"}
+    json_field_list = ["id", "user_id", "choice_id", "created_at", "active"]
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    choice_id: Mapped[int] = mapped_column(ForeignKey("polling.choices.id"))
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP)
+    active: Mapped[bool] = mapped_column(Boolean)
+    user: Mapped["User"] = relationship(back_populates="poll_answers", repr=False)
+    choice: Mapped["PollChoice"] = relationship(back_populates="answers", repr=False)
 
 
 if __name__ == "__main__":

@@ -1,13 +1,16 @@
 from html import escape
 
-from flask import g
+from flask import g, jsonify
 from flask_socketio import emit, join_room
 
+import poll
 from app import create_app, socketio
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
+
+from managers import poll_manager
 
 if __name__ == "__main__":
     load_dotenv()
@@ -50,13 +53,56 @@ if __name__ == "__main__":
         emit('join_response', ["SYSTEM", f"{username} has joined the room '{room}'", room], to=room)
 
 
+    @socketio.on("poll_join_event")
+    def poll_join(data):
+        # data is username, room
+        username = escape(data[0])
+        room_code: str = escape(data[1])
+        join_room(room_code)
+        emit('poll_join', [username], to=room_code)
+
+
+    @socketio.on("poll_open_question_event")
+    def poll_open_question_event(data):
+        g.session = Session()
+        # data is room, question text, CSV of choice text
+        room_code: str = escape(data[0])
+        question = escape(data[1])
+        choices = data[2]
+        q_id, c_ids = poll_manager.create_question(room_code, question, choices)
+        print(question, type(question))
+        print(choices, type(choices))
+        print(q_id, type(q_id))
+        print(c_ids, type(c_ids))
+        emit('poll_open_question', jsonify([question, q_id, choices, c_ids]), to=room_code)
+        g.session.close()
+
+
+    @socketio.on("poll_close_question_event")
+    def poll_close_question_event(data):
+        # data is room, question_id
+        room = escape(data[0])
+        emit('poll_close_question', data, to=room)
+
+
+    @socketio.on("poll_post_answer_event")
+    def poll_post_answer_event(data):
+        g.session = Session()
+        # data is room, user_id, answer_id
+        room = escape(data[0])
+        poll_manager.log_answer(escape(data[1]), escape(data[2]))
+        emit('poll_post_answer', data, to=room)
+        g.session.close()
+
+
     import auth
     import game
-    import coding   
+    import coding
 
     this_app.register_blueprint(auth.bp)
     this_app.register_blueprint(game.bp)
     this_app.register_blueprint(coding.bp)
+    this_app.register_blueprint(poll.bp)
 
     auth.oauth.init_app(this_app)
 

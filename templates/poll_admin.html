@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}POLL ROOM CODE: {{ room_code }} {% endblock %}
+{% block header %}
+    <h1><span class="badge bg-primary">POLL ROOM CODE: <span class="badge bg-black">{{ room_code }}</span></span></h1>
+{% endblock %}
+
+{% block content %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
+            integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
+            crossorigin="anonymous"></script>
+
+    <script type="text/javascript">
+        $(function () {
+            const room_code = "{{ room_code }}";
+
+            let socket = io();
+            socket.emit('poll_join_event', ["{{ session['user'].name }}", room_code]);
+
+            socket.on('poll_join', function (data) {
+                console.log(data);
+            });
+
+            socket.on('poll_open_question', function (data) {
+                console.log(data);
+            });
+            socket.on('poll_close_question', function (data) {
+                console.log(data);
+            });
+            socket.on('poll_post_answer', function (data) {
+                console.log(data);
+            });
+
+            $("#new_question").on("click", function () {
+                let $question = $("#question").val();
+                let $choices = [];
+                for(let i = 0; i < 10; i++) {
+                    const choice_selector = $("#choice_"+i);
+                    if((choice_selector.length > 0) && choice_selector.val().length > 0) {
+                        $choices.push(choice_selector.val());
+                    }
+                }
+                let $data = [room_code, $question, $choices];
+                console.log($data);
+                socket.emit('poll_open_question_event', $data);
+            });
+            $("#chat_send").on("click", function () {
+                let $chat_input = $("#chat_send_input");
+                socket.emit('chat', ["{{ session['user'].name }}", $chat_input.val(), get_game_data("room")]);
+                $chat_input.val('');
+            });
+        });
+
+    </script>
+
+    <div class="content" id="question_post">
+        <div class="input-group mb-3">
+            <span class="input-group-text" id="question-desc">question</span>
+            <input type="text" class="form-control" placeholder="question" aria-label="question" id="question"
+                   aria-describedby="question-desc">
+        </div>
+        {% for i in [0,1,2,3,4,5] %}
+            <div class="input-group mb-2 d-inline-flex align-items-center w-auto">
+                <span class="input-group-text" id="choice-desc">choice</span>
+                <input type="text" class="form-control" placeholder="choice" aria-label="choice_{{ i }}"
+                       id="choice_{{ i }}" aria-describedby="choice-{{ i }}-desc" style="min-width: 320px">
+            </div>
+        {% endfor %}
+        <input type="button" value="GO" id="new_question">
+    </div>
+    <div class="content" id="question_result">
+        <span id="received_question">xxx</span>
+        <span id="received_question_id">xxx</span>
+        <span id="received_choices">xxx</span>
+        <span id="received_choices_id">xxx</span>
+
+    </div>
+{% endblock %}
