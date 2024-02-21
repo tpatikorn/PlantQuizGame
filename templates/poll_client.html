@@ -17,24 +17,33 @@
             let socket = io();
             socket.emit('poll_join_event', ["{{ session['user'].name }}", room_code]);
 
+            let $choice = $(".choices");
             socket.on('poll_open_question', function (data) {
-                $(".choices").css("display", "none");
+                $choice.css("display", "none");
+                $choice.css("cursor", "pointer");
+                $choice.css("background", "white");
                 $("#received_question").html(data[0][1]).data("question-id", data[0][0]);
                 for (let i = 0; i < data[1].length; i++) {
-                    $("#received_choice_text_" + i).html(data[1][i][1]).css("display", "block");
+                    $("#received_choice_text_" + i).html(data[1][i][1]).css("display", "block").data("choice-id", data[1][i][0]);
                 }
             });
             socket.on('poll_close_question', function (data) {
-                console.log(data);
-            });
-            socket.on('poll_post_answer', function (data) {
-                console.log(data);
+                $choice.css("background", "grey");
+                $choice.css("cursor", "not-allowed");
+                $choice.data("choice-id", -1);
             });
 
-            $("#answer_send").on("click", function () {
-                let $chat_input = $("#chat_send_input");
-                socket.emit('chat', ["{{ session['user'].name }}", $chat_input.val(), get_game_data("room")]);
-                $chat_input.val('');
+            $choice.on("click", function () {
+                const $answer = $(this).data("choice-id");
+                if($answer < 0) {
+                    alert("too late!");
+                }
+                console.log($answer);
+                socket.emit('poll_post_answer_event', [room_code, "{{ session['user'].id }}", $answer]);
+                $choice.css("background", "grey");
+                $choice.css("cursor", "not-allowed");
+                $choice.data("choice-id", -1);
+                $(this).css("background", "lightgreen");
             });
         });
 
@@ -54,7 +63,7 @@
                 <div class="row text-center">
             {% endif %}
             <div class="col choices text-wrap border rounded h4 m-2 p-2" id="received_choice_text_{{ i }}"
-                 data-choice-id="{{ i }}">
+                 data-choice-id="{{ i }}" style="cursor: pointer;">
                 choice {{ i }} Dog
             </div>
         {% endfor %}

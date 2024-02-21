@@ -76,6 +76,7 @@ if __name__ == "__main__":
 
     @socketio.on("poll_close_question_event")
     def poll_close_question_event(data):
+        print("poll_close_question_event")
         # data is room, question_id
         room = escape(data[0])
         emit('poll_close_question', data, to=room)
@@ -83,10 +84,11 @@ if __name__ == "__main__":
 
     @socketio.on("poll_post_answer_event")
     def poll_post_answer_event(data):
+        print("poll_post_answer_event", data)
         g.session = Session()
         # data is room, user_id, answer_id
         room = escape(data[0])
-        poll_manager.log_answer(escape(data[1]), escape(data[2]))
+        poll_manager.log_answer(user_id=data[1], answer_id=data[2])
         emit('poll_post_answer', data, to=room)
         g.session.close()
 

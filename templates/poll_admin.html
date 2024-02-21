@@ -5,6 +5,8 @@
     <h1><span class="badge bg-primary">POLL ROOM CODE: <span class="badge bg-black">{{ room_code }}</span></span></h1>
 {% endblock %}
 
+{% set NUM_CHOICES = 6 %}
+
 {% block content %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
             integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
@@ -25,16 +27,22 @@
                 $(".choices").css("display", "none");
                 $("#received_question").html(data[0][1]).data("question-id", data[0][0]);
                 for (let i = 0; i < data[1].length; i++) {
-                    $("#received_choice_" + i).data("choice-id", data[1][i][0]).css("display", "flex");
+                    console.log(data[1][i]);
+                    $("#received_choice_" + i).css("display", "flex");
                     $("#received_choice_text_" + i).html(data[1][i][1]);
-                    $("#received_choice_vote_" + i).html(0);
+                    $("#received_choice_vote_" + i).data("choice-id", data[1][i][0]).html("");
                 }
-            });
-            socket.on('poll_close_question', function (data) {
-                console.log(data);
             });
             socket.on('poll_post_answer', function (data) {
                 console.log(data);
+                const choice_id = data[2];
+
+                for (let i = 0; i < 10; i++) {
+                    const choice_selector = $("#received_choice_vote_" + i);
+                    if ((choice_selector.length > 0) && (choice_selector.data("choice-id") === choice_id)) {
+                        choice_selector.html(choice_selector.html()+"😀");
+                    }
+                }
             });
 
             $("#new_question").on("click", function () {
@@ -60,7 +68,6 @@
             <input type="text" class="form-control" placeholder="question" aria-label="question" id="question"
                    aria-describedby="question-desc">
         </div>
-        {% set NUM_CHOICES = 6 %}
         {% for i in range(NUM_CHOICES) %}
             <div class="input-group mb-2 d-inline-flex align-items-center w-auto">
                 <span class="input-group-text" id="choice-desc">choice</span>

@@ -77,6 +77,6 @@ def create_question(room_code: str, question: str, choices: List[str]) -> Tuple[
 
 
 def log_answer(user_id: int, answer_id):
-    q = insert(PollAnswer).values(user_id=user_id, answer_id=answer_id)
+    q = insert(PollAnswer).values(user_id=user_id, choice_id=answer_id)
     g.session.execute(q)
     g.session.commit()
