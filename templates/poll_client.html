@@ -65,7 +65,7 @@
     {% set NUM_CHOICES = 8 %}
     <div class="content" id="question_result">
         <span class="center-text" id="received_question" data-question-id="-1">
-            {% if user in session.keys() %}
+            {% if "user" in session.keys() %}
                 waiting for a question
             {% else %}
                 you must first login with Google (top right)
