@@ -56,10 +56,11 @@ if __name__ == "__main__":
     @socketio.on("poll_join_event")
     def poll_join(data):
         # data is username, room
-        username = escape(data[0])
+        user_id = escape(data[0])
         room_code: str = escape(data[1])
         join_room(room_code)
-        emit('poll_join', [username], to=room_code)
+        print("joining", user_id, room_code)
+        emit('poll_join', [user_id], to=room_code)
 
 
     @socketio.on("poll_open_question_event")
@@ -76,7 +77,7 @@ if __name__ == "__main__":
 
     @socketio.on("poll_close_question_event")
     def poll_close_question_event(data):
-        print("poll_close_question_event")
+        print("poll_close_question_event", data[0])
         # data is room, question_id
         room = escape(data[0])
         emit('poll_close_question', data, to=room)

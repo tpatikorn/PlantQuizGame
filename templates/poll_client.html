@@ -2,7 +2,9 @@
 
 {% block title %}POLL ROOM CODE: {{ room_code }} {% endblock %}
 {% block header %}
-    <h1><span class="badge bg-primary">POLL ROOM CODE: <span class="badge bg-black">{{ room_code }}</span></span></h1>
+    <h1><span class="badge bg-primary">POLL ROOM CODE: <span class="badge bg-black">{{ room_code }}</span></span>
+        <button type="button" class="btn btn-warning" id="poll_join">REJOIN</button>
+    </h1>
 {% endblock %}
 
 {% block content %}
@@ -16,6 +18,10 @@
             const room_code = "{{ room_code }}";
             let socket = io();
             socket.emit('poll_join_event', ["{{ session['user'].name }}", room_code]);
+
+            $("#poll_join").on("click", function () {
+                socket.emit('poll_join_event', ["{{ session['user'].id }}", room_code]);
+            });
 
             let $choice = $(".choices");
             socket.on('poll_open_question', function (data) {
@@ -35,7 +41,7 @@
 
             $choice.on("click", function () {
                 const $answer = $(this).data("choice-id");
-                if($answer < 0) {
+                if ($answer < 0) {
                     alert("too late!");
                 }
                 console.log($answer);

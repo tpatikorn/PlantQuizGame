@@ -17,7 +17,7 @@
             const room_code = "{{ room_code }}";
 
             let socket = io();
-            socket.emit('poll_join_event', ["{{ session['user'].name }}", room_code]);
+            socket.emit('poll_join_event', ["{{ session['user'].id }}", room_code]);
 
             socket.on('poll_join', function (data) {
                 console.log(data);
@@ -40,9 +40,17 @@
                 for (let i = 0; i < 10; i++) {
                     const choice_selector = $("#received_choice_vote_" + i);
                     if ((choice_selector.length > 0) && (choice_selector.data("choice-id") === choice_id)) {
-                        choice_selector.html(choice_selector.html()+"😀");
+                        choice_selector.html(choice_selector.html() + "😀");
                     }
                 }
+            });
+
+            $("#poll_join").on("click", function () {
+                socket.emit('poll_join_event', ["{{ session['user'].id }}", room_code]);
+            });
+
+            $("#close_question").on("click", function () {
+                socket.emit('poll_close_question_event', [room_code]);
             });
 
             $("#new_question").on("click", function () {
@@ -75,7 +83,9 @@
                        id="choice_{{ i }}" aria-describedby="choice-{{ i }}-desc" style="min-width: 320px">
             </div>
         {% endfor %}
-        <input type="button" value="GO" id="new_question">
+        <button type="button" class="btn btn-success" id="new_question">GO</button>
+        <button type="button" class="btn btn-danger" id="close_question">END</button>
+        <button type="button" class="btn btn-warning" id="poll_join">REJOIN</button>
     </div>
     <div class="content" id="question_result">
         <span class="center-text" id="received_question" data-question-id="-1">q</span>
