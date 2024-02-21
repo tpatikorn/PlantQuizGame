@@ -16,11 +16,17 @@
     <script type="text/javascript">
         $(function () {
             const room_code = "{{ room_code }}";
+            let user_id = -1;
+            {% if "user" in session.keys() %}
+                user_id = "{{ session['user'].id }}";
+            {% else %}
+                alert("you must first login with Google (top right)");
+            {% endif %}
             let socket = io();
-            socket.emit('poll_join_event', ["{{ session['user'].name }}", room_code]);
+            socket.emit('poll_join_event', [user_id, room_code]);
 
             $("#poll_join").on("click", function () {
-                socket.emit('poll_join_event', ["{{ session['user'].id }}", room_code]);
+                socket.emit('poll_join_event', [user_id, room_code]);
             });
 
             let $choice = $(".choices");
@@ -41,15 +47,15 @@
 
             $choice.on("click", function () {
                 const $answer = $(this).data("choice-id");
-                if ($answer < 0) {
-                    alert("too late!");
-                }
-                console.log($answer);
-                socket.emit('poll_post_answer_event', [room_code, "{{ session['user'].id }}", $answer]);
                 $choice.css("background", "grey");
                 $choice.css("cursor", "not-allowed");
                 $choice.data("choice-id", -1);
-                $(this).css("background", "lightgreen");
+                if ($answer < 0) {
+                    alert("No can do!");
+                } else {
+                    socket.emit('poll_post_answer_event', [room_code, user_id, $answer]);
+                    $(this).css("background", "lightgreen");
+                }
             });
         });
 
@@ -58,8 +64,15 @@
 
     {% set NUM_CHOICES = 8 %}
     <div class="content" id="question_result">
-        <span class="center-text" id="received_question" data-question-id="-1">waiting for a question</span>
+        <span class="center-text" id="received_question" data-question-id="-1">
+            {% if user in session.keys() %}
+                waiting for a question
+            {% else %}
+                you must first login with Google (top right)
+            {% endif %}
+        </span>
     </div>
+
     <div class="container">
         {% for i in range(NUM_CHOICES) %}
             {% if i % 4 == 0 %}
@@ -69,7 +82,7 @@
                 <div class="row text-center">
             {% endif %}
             <div class="col choices text-wrap border rounded h4 m-2 p-2" id="received_choice_text_{{ i }}"
-                 data-choice-id="{{ i }}" style="cursor: pointer;">
+                 data-choice-id="-1" style="cursor: pointer;">
                 choice {{ i }} Dog
             </div>
         {% endfor %}

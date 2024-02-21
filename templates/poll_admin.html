@@ -2,10 +2,13 @@
 
 {% block title %}POLL ROOM CODE: {{ room_code }} {% endblock %}
 {% block header %}
-    <h1><span class="badge bg-primary">POLL ROOM CODE: <span class="badge bg-black">{{ room_code }}</span></span></h1>
+    <h1><span class="badge bg-primary">POLL ROOM CODE: <span class="badge bg-black">{{ room_code }}</span></span>
+        <button type="button" class="btn btn-warning" id="poll_join">REJOIN</button>
+    </h1>
 {% endblock %}
 
 {% set NUM_CHOICES = 6 %}
+{% set PLACEHOLDER_TEXT = ["World", "Universe", "Earth", "Isekai", "Moon", "Sun"] %}
 
 {% block content %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
@@ -14,7 +17,18 @@
     <link rel="stylesheet" href="{{ url_for("static", filename="poll.css") }}"/>
     <script type="text/javascript">
         $(function () {
+
             const room_code = "{{ room_code }}";
+            const emojis = ["🐻", "❄️", "🐜", "🧐", "👨‍🦱", "🚌", "🦟", "👘", "🍌", "🏎",
+                "🎇", "🐺", "💂‍♂️", "👛", "👢", "🕵️", "🥕", "📲", "👨‍👧‍👧", "🕍"]
+
+            function get_random_emoji(k = 1) {
+                let result = "";
+                for (let i = 0; i < k; i++) {
+                    result = result + emojis[Math.floor(Math.random() * emojis.length)];
+                }
+                return result;
+            }
 
             let socket = io();
             socket.emit('poll_join_event', ["{{ session['user'].id }}", room_code]);
@@ -28,8 +42,9 @@
                 $("#received_question").html(data[0][1]).data("question-id", data[0][0]);
                 for (let i = 0; i < data[1].length; i++) {
                     console.log(data[1][i]);
+                    const random_emoji = get_random_emoji(5);
                     $("#received_choice_" + i).css("display", "flex");
-                    $("#received_choice_text_" + i).html(data[1][i][1]);
+                    $("#received_choice_text_" + i).html(random_emoji).data("choice-text", data[1][i][1]);
                     $("#received_choice_vote_" + i).data("choice-id", data[1][i][0]).html("");
                 }
             });
@@ -40,7 +55,7 @@
                 for (let i = 0; i < 10; i++) {
                     const choice_selector = $("#received_choice_vote_" + i);
                     if ((choice_selector.length > 0) && (choice_selector.data("choice-id") === choice_id)) {
-                        choice_selector.html(choice_selector.html() + "😀");
+                        choice_selector.html(choice_selector.html() + get_random_emoji());
                     }
                 }
             });
@@ -51,6 +66,15 @@
 
             $("#close_question").on("click", function () {
                 socket.emit('poll_close_question_event', [room_code]);
+            });
+
+            $("#toggle_show_choice").on("click", function () {
+                for (let i = 0; i < 10; i++) {
+                    const choice_selector = $("#received_choice_text_" + i);
+                    if (choice_selector.length > 0) {
+                        choice_selector.html(choice_selector.data("choice-text"));
+                    }
+                }
             });
 
             $("#new_question").on("click", function () {
@@ -73,35 +97,37 @@
     <div class="content" id="question_post">
         <div class="input-group mb-3">
             <span class="input-group-text" id="question-desc">question</span>
-            <input type="text" class="form-control" placeholder="question" aria-label="question" id="question"
+            <input type="text" class="form-control" placeholder="Hello" aria-label="question" id="question"
                    aria-describedby="question-desc">
         </div>
         {% for i in range(NUM_CHOICES) %}
             <div class="input-group mb-2 d-inline-flex align-items-center w-auto">
                 <span class="input-group-text" id="choice-desc">choice</span>
-                <input type="text" class="form-control" placeholder="choice" aria-label="choice_{{ i }}"
+                <input type="text" class="form-control" placeholder="{{ PLACEHOLDER_TEXT[i] }}"
+                       aria-label="choice_{{ i }}"
                        id="choice_{{ i }}" aria-describedby="choice-{{ i }}-desc" style="min-width: 320px">
             </div>
         {% endfor %}
-        <button type="button" class="btn btn-success" id="new_question">GO</button>
-        <button type="button" class="btn btn-danger" id="close_question">END</button>
-        <button type="button" class="btn btn-warning" id="poll_join">REJOIN</button>
+        <div style="text-align: center">
+            <button type="button" class="btn btn-success" id="new_question">GO</button>
+            <button type="button" class="btn btn-danger" id="close_question">END</button>
+        </div>
     </div>
     <div class="content" id="question_result">
-        <span class="center-text" id="received_question" data-question-id="-1">q</span>
+        <span class="center-text" id="received_question" data-question-id="-1">Hello</span>
         <div class="container">
             {% for i in range(NUM_CHOICES) %}
                 <div class="row choices" id="received_choice_{{ i }}" data-choice-id="{{ i }}">
-                    <div class="col align-left col-sm-2 text-wrap border rounded-start p-2"
+                    <div class="col choice_text align-left col-sm-2 text-wrap border rounded-start p-2"
                          id="received_choice_text_{{ i }}" data-choice-id="{{ i }}">
-                        text {{ i }}
+                        {{ PLACEHOLDER_TEXT[i] }}
                     </div>
                     <div class="col align-left col-sm-20 text-wrap border rounded-end p-2"
                          id="received_choice_vote_{{ i }}" data-choice-id="{{ i }}">
-                        vote {{ i }}
                     </div>
                 </div>
             {% endfor %}
         </div>
+        <button type="button" class="btn btn-info m-2" id="toggle_show_choice">Show Choice Text</button>
     </div>
 {% endblock %}

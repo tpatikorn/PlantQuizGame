@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template, request, json
+from flask import Blueprint, render_template, request, json, session
 
+from auth import login_required
 from managers import poll_manager
 from models.db_models import PollRoom
 
@@ -7,9 +8,13 @@ bp = Blueprint('poll', __name__, url_prefix='/poll')
 
 
 @bp.route('/admin')
+@login_required
 def get_admin_page():
-    room_code = create_or_join_room(request.args.get("room_id"), request.args.get("room_code"))
-    return render_template("poll_admin.html", room_code=room_code)
+    if session["user"]["admin"]:
+        room_code = create_or_join_room(request.args.get("room_id"), request.args.get("room_code"))
+        return render_template("poll_admin.html", room_code=room_code)
+    else:
+        return "You must be an admin to use this feature", 405
 
 
 @bp.route('/client')

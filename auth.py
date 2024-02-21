@@ -47,7 +47,7 @@ def login():
                                                family_name=user["family_name"], name=user["name"],
                                                picture=user["picture"])
     session['user'] = {"email": new_user.email, "given_name": new_user.given_name, "family_name": new_user.family_name,
-                       "name": new_user.name, "picture": new_user.picture, "id": new_user.id}
+                       "name": new_user.name, "picture": new_user.picture, "id": new_user.id, "admin": new_user.admin}
     return redirect(request.headers["Referer"])
 
 
