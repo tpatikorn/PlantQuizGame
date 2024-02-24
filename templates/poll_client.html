@@ -2,7 +2,8 @@
 
 {% block title %}POLL ROOM CODE: {{ room_code }} {% endblock %}
 {% block header %}
-    <h1><span class="badge bg-primary">POLL ROOM CODE: <span class="badge bg-black">{{ room_code }}</span></span>
+    <h1><span class="badge bg-primary">POLL ROOM CODE: <span class="badge bg-black"
+                                                             id="room_code">LOADING ROOM CODE</span></span>
         <button type="button" class="btn btn-warning" id="poll_join">REJOIN</button>
     </h1>
 {% endblock %}
@@ -22,14 +23,19 @@
             {% else %}
                 alert("you must first login with Google (top right)");
             {% endif %}
+            let $choice = $(".choices");
             let socket = io();
-            socket.emit('poll_join_event', [user_id, room_code]);
+
+            function join_room() {
+                socket.emit('poll_join_event', [user_id, room_code], response => {
+                    $("#room_code").html(room_code);
+                });
+            }
 
             $("#poll_join").on("click", function () {
-                socket.emit('poll_join_event', [user_id, room_code]);
+                join_room();
             });
 
-            let $choice = $(".choices");
             socket.on('poll_open_question', function (data) {
                 $choice.css("display", "none");
                 $choice.css("cursor", "pointer");
@@ -44,6 +50,9 @@
                 $choice.css("cursor", "not-allowed");
                 $choice.data("choice-id", -1);
             });
+            socket.on("connect", () => {
+                join_room();
+            });
 
             $choice.on("click", function () {
                 const $answer = $(this).data("choice-id");
@@ -51,7 +60,7 @@
                 $choice.css("cursor", "not-allowed");
                 $choice.data("choice-id", -1);
                 if ($answer < 0) {
-                    alert("No can do!");
+                    $("#received_question").html("Too late!");
                 } else {
                     socket.emit('poll_post_answer_event', [room_code, user_id, $answer]);
                     $(this).css("background", "lightgreen");
@@ -68,7 +77,8 @@
             {% if "user" in session.keys() %}
                 waiting for a question
             {% else %}
-                you must first login with Google (top right)
+                you must first login with Google (top right). <br>
+                By logging in, you agree to our <a href="/terms">Terms of Use.</a>
             {% endif %}
         </span>
     </div>

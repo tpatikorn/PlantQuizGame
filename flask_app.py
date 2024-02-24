@@ -10,7 +10,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 
-from managers import poll_manager
+from managers import poll_manager, user_manager
 
 if __name__ == "__main__":
     load_dotenv()
@@ -56,11 +56,14 @@ if __name__ == "__main__":
     @socketio.on("poll_join_event")
     def poll_join(data):
         # data is username, room
+        g.session = Session()
         user_id = escape(data[0])
         room_code: str = escape(data[1])
         join_room(room_code)
-        print("joining", user_id, room_code)
+        print("joining", user_manager.find_user_with_id(user_id).email, room_code)
         emit('poll_join', [user_id], to=room_code)
+        g.session.close()
+        return room_code
 
 
     @socketio.on("poll_open_question_event")
@@ -91,6 +94,7 @@ if __name__ == "__main__":
         room = escape(data[0])
         poll_manager.log_answer(user_id=data[1], answer_id=data[2])
         emit('poll_post_answer', data, to=room)
+        print("room", data[1], data[2])
         g.session.close()
 
 

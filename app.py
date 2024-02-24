@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, send_from_directory
+from flask import Flask, render_template, jsonify, send_from_directory, url_for
 from flask_cors import CORS
 from flask_socketio import SocketIO
 
@@ -31,6 +31,10 @@ def create_app(debug=False):
     def images(image_id):
         img = fetch_image_from_id(image_id)
         return send_from_directory(img.dir, img.filename)
+
+    @app.get('/terms')
+    def terms():
+        return render_template('terms.html')
 
     socketio.init_app(app)
     return app

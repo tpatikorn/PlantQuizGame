@@ -2,7 +2,8 @@
 
 {% block title %}POLL ROOM CODE: {{ room_code }} {% endblock %}
 {% block header %}
-    <h1><span class="badge bg-primary">POLL ROOM CODE: <span class="badge bg-black">{{ room_code }}</span></span>
+    <h1><span class="badge bg-primary">POLL ROOM CODE: <span id="room_code"
+                                                             class="badge bg-black">LOADING ROOM CODE</span></span>
         <button type="button" class="btn btn-warning" id="poll_join">REJOIN</button>
     </h1>
 {% endblock %}
@@ -31,10 +32,20 @@
             }
 
             let socket = io();
-            socket.emit('poll_join_event', ["{{ session['user'].id }}", room_code]);
+            let user_id = -1;
+            {% if "user" in session.keys() %}
+                user_id = "{{ session['user'].id }}";
+            {% else %}
+                alert("you must first login with Google (top right)");
+            {% endif %}
+            function join_room() {
+                socket.emit('poll_join_event', [user_id, room_code], response => {
+                    $("#room_code").html(room_code);
+                });
+            }
 
-            socket.on('poll_join', function (data) {
-                console.log(data);
+            $("#poll_join").on("click", function () {
+                join_room();
             });
 
             socket.on('poll_open_question', function (data) {
@@ -60,21 +71,8 @@
                 }
             });
 
-            $("#poll_join").on("click", function () {
-                socket.emit('poll_join_event', ["{{ session['user'].id }}", room_code]);
-            });
-
             $("#close_question").on("click", function () {
                 socket.emit('poll_close_question_event', [room_code]);
-            });
-
-            $("#toggle_show_choice").on("click", function () {
-                for (let i = 0; i < 10; i++) {
-                    const choice_selector = $("#received_choice_text_" + i);
-                    if (choice_selector.length > 0) {
-                        choice_selector.html(choice_selector.data("choice-text"));
-                    }
-                }
             });
 
             $("#new_question").on("click", function () {
@@ -89,6 +87,18 @@
                 let $data = [room_code, $question, $choices];
                 console.log($data);
                 socket.emit('poll_open_question_event', $data);
+            });
+            socket.on("connect", () => {
+                join_room();
+            });
+
+            $("#toggle_show_choice").on("click", function () {
+                for (let i = 0; i < 10; i++) {
+                    const choice_selector = $("#received_choice_text_" + i);
+                    if (choice_selector.length > 0) {
+                        choice_selector.html(choice_selector.data("choice-text"));
+                    }
+                }
             });
         });
 
