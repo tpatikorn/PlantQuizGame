@@ -75,6 +75,81 @@
                 socket.emit('poll_close_question_event', [room_code]);
             });
 
+            $(".new_question_prep").on("click", function () {
+                let $question = "Hello";
+                let $choices = ["World", "Earth", "Isekai", "Universe"];
+                alert($(this).html());
+                switch ($(this).html()) {
+                    case "BG":
+                        $question = "Are you a boy? Or are you a girl?";
+                        $choices = ["boy", "girl"];
+                        break
+                    case "EN":
+                        $question = "How much English should I use?";
+                        $choices = ["Full English let's go!", "English terminology, explain in Thai plz.", "English slides are already hard for me T_T"];
+                        break
+                    case "STAT":
+                        $question = "Statistical Background?";
+                        $choices = ["I know math", "I can use math", "What's math?"];
+                        break
+                    case "ML":
+                        $question = "Machine Learning Background?";
+                        $choices = ["0", "1", "2", "3"];
+                        break
+                    case "BIAS":
+                        $question = "Is Bias Good/Bad?";
+                        $choices = ["Good", "Bad"];
+                        break
+                    case "DANGER":
+                        $question = "What is more dangerous?";
+                        $choices = ["Shark", "Good Bois"];
+                        break
+                    case "DOG":
+                        $question = "Are dogs dangerous?";
+                        $choices = ["Yes", "No"];
+                        break
+                    case "CARPLANE":
+                        $question = "Which method of transportation is more dangerous?";
+                        $choices = ["Cars", "Planes"];
+                        break
+                    case "PLANE":
+                        $question = "WW2 planes: Where to reinforce the armor?";
+                        $choices = ["1. Wings", "2. Nose", "3. Engine", "4. Gunman", "5. Tail", "6. Tail wings"];
+                        break
+                    case "RAIN":
+                        $question = "Based on your experience, when's it more likely to rain?";
+                        $choices = ["Cloth", "No cloth", "Equal"];
+                        break
+                    case "PARK":
+                        $question = "In a parking lot, one car spent 10 minutes trying to park. The driver is";
+                        $choices = ["A man", "A woman", "A KKU student"];
+                        break
+                    case "KNIGHT":
+                        $question = "which knight is stronger?";
+                        $choices = ["Dancing", "Lightning"];
+                        break
+                    case "STUDENT":
+                        $question = "Which group of students are smarter?";
+                        $choices = ["In uniform", "In graduation gown"];
+                        break
+                    case "GAMBLE":
+                        $question = "Which game will you play?";
+                        $choices = ["+2/-4", "+0/+4", "+1/+0"];
+                        break
+                    case "HUNGRY":
+                        $question = "What to do?";
+                        $choices = ["Horapa+Pork", "10 minutes drive for kaprao"];
+                        break
+                    case "TRAVEL":
+                        $question = "Travel cost to hospital (both legs combined)?";
+                        $choices = ["<150 THB", "150-299 THB", "> 300 THB"];
+                        break
+                }
+                let $data = [room_code, $question, $choices];
+                console.log($data);
+                socket.emit('poll_open_question_event', $data);
+            });
+
             $("#new_question").on("click", function () {
                 let $question = $("#question").val();
                 let $choices = [];
@@ -121,6 +196,24 @@
         <div style="text-align: center">
             <button type="button" class="btn btn-success" id="new_question">GO</button>
             <button type="button" class="btn btn-danger" id="close_question">END</button>
+        </div>
+        <div>
+            <button type="button" class="btn btn-info new_question_prep">BG</button>
+            <button type="button" class="btn btn-info new_question_prep">EN</button>
+            <button type="button" class="btn btn-info new_question_prep">STAT</button>
+            <button type="button" class="btn btn-info new_question_prep">ML</button>
+            <button type="button" class="btn btn-info new_question_prep">BIAS</button>
+            <button type="button" class="btn btn-info new_question_prep">DANGER</button>
+            <button type="button" class="btn btn-info new_question_prep">DOG</button>
+            <button type="button" class="btn btn-info new_question_prep">CARPLANE</button>
+            <button type="button" class="btn btn-info new_question_prep">PLANE</button>
+            <button type="button" class="btn btn-info new_question_prep">RAIN</button>
+            <button type="button" class="btn btn-info new_question_prep">PARK</button>
+            <button type="button" class="btn btn-info new_question_prep">KNIGHT</button>
+            <button type="button" class="btn btn-info new_question_prep">STUDENT</button>
+            <button type="button" class="btn btn-info new_question_prep">GAMBLE</button>
+            <button type="button" class="btn btn-info new_question_prep">HUNGRY</button>
+            <button type="button" class="btn btn-info new_question_prep">TRAVEL</button>
         </div>
     </div>
     <div class="content" id="question_result">

@@ -57,7 +57,7 @@ if __name__ == "__main__":
     def poll_join(data):
         # data is username, room
         g.session = Session()
-        user_id = escape(data[0])
+        user_id = data[0]
         room_code: str = escape(data[1])
         join_room(room_code)
         print("joining", user_manager.find_user_with_id(user_id).email, room_code)
