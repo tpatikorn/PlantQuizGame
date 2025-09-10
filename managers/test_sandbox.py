@@ -139,7 +139,7 @@ if __name__ == "__main__":
     test_code1 = """
 import random
 def main(arg):
-    with open("app.py") as p:
+    with open("create_app.py") as p:
         for l in p:
             print(l)
         return arg * 2

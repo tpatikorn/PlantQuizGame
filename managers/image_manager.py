@@ -14,7 +14,7 @@ def __set_db_seed(seed: float):
 
 
 def fetch_tags(conditions: list = None, limit=None, seed: float = None) -> list[Tag]:
-    q = select(Tag).order_by(func.random())
+    q = select(Tag).order_by(func.random()).where(Tag.active.__eq__(True))
     if conditions is not None:
         q = q.where(*conditions)
     if limit is not None:
@@ -23,12 +23,13 @@ def fetch_tags(conditions: list = None, limit=None, seed: float = None) -> list[
 
 
 def fetch_image_from_id(image_id: int) -> Image:
-    q = select(Image).where(Image.id == image_id)
+    q = select(Image).where(Image.id.__eq__(image_id)).where(Image.active.__eq__(True))
     return g.session.scalars(q).first()
 
 
 def fetch_images(conditions=None, limit: int = None, seed: float = None) -> list[Image]:
-    q = select(Image).join(ImageTag).join(Tag).order_by(func.random())
+    q = (select(Image).join(ImageTag).join(Tag).order_by(func.random())
+         .where(Image.active.__eq__(True).__and__(Tag.active.__eq__(True))))
     if conditions is not None:
         q = q.where(conditions)
     if limit is not None:
@@ -37,7 +38,8 @@ def fetch_images(conditions=None, limit: int = None, seed: float = None) -> list
 
 
 def fetch_images_with_tags(include_tags=None, exclude_tags=None, limit=None, seed: float = None) -> list[Image]:
-    q = select(Image).join(ImageTag).join(Tag).order_by(func.random())
+    q = (select(Image).join(ImageTag).join(Tag).order_by(func.random())
+         .where(Image.active.__eq__(True).__and__(Tag.active.__eq__(True))))
     if include_tags is not None:
         if type(include_tags) == int:
             include_tags = [include_tags]

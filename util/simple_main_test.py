@@ -1,6 +1,6 @@
 def test_this(fun):
     from flask import g
-    from app import create_app
+    from create_app import create_app
     import os
     from dotenv import load_dotenv
     from sqlalchemy import create_engine
