@@ -22,7 +22,7 @@ def find_categories(language_id: int) -> List[Problem]:
 
 
 def find_problems(category_id: int) -> List[Problem]:
-    q = select(Problem).where(Problem.category_id == category_id)
+    q = select(Problem).where(Problem.category_id == category_id).order_by(Problem.id)
     return g.session.scalars(q).fetchall()
 
 
