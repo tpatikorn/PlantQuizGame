@@ -31,7 +31,7 @@
                 return result;
             }
 
-            let socket = io();
+            let socket = io("/PlantQuizGame");
             let user_id = -1;
             {% if "user" in session.keys() %}
                 user_id = "{{ session['user'].id }}";

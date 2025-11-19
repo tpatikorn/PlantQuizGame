@@ -45,6 +45,7 @@
         }
     </style>
     <script>
+        let colId = 1;
 
         const categories = {};
         {% for c in categories %}
@@ -116,7 +117,8 @@
             }
 
             function selector_th_html() {
-                return `<th><select class="var_type">
+                return `
+<th class="var_type_th col_${colId}"><select class="var_type">
 <option value="int">int</option>
 <option value="float">float</option>
 <option value="str">str</option>
@@ -126,9 +128,10 @@
             }
 
             function var_name_th_html() {
-                return `<th scope="col" style="table-layout: fixed">
-<input type="text" value="x${$("#test_cases tr").eq(0).find("th").length - 2}" class="var_name"/>
-<button type="button" class="btn-close" aria-label="Close"></button>
+                return `
+<th scope="col" style="table-layout: fixed" class="var_name_th col_${colId}">
+<input type="text" name="var_name" value="x${colId}" class="var_name"/>
+<button type="button" class="btn-close" aria-label="Close" onclick="document.querySelectorAll('.col_${colId}').forEach(e => e.remove())"></button>
 </th>`;
             }
 
@@ -270,8 +273,11 @@
                 let new_row = `<tr>`;
                 new_row = new_row + `<td>test case ${$table_rows.length - 1}:</td>`;
                 new_row = new_row + `<td><input class="form-check-input" type="checkbox" value="True"></td>`;
-                for (let i = 0; i < $table_rows.eq(0).find('th').length - 3; i++) {
-                    new_row = new_row + `<td><input type="text" value="" class="test_val"/></td>`;
+                // TODO change to for each
+                for (let i = 2; i < $table_rows.eq(0).find('th').length; i++) {
+                    const this_col = Array.from($("#test_cases").eq(0).find('th').get(i).classList).filter(x => x.startsWith("col"))[0];
+                    new_row = new_row + `<td class="${this_col}">
+<input type="text" name="value" value="" class="test_val"/></td>`;
                 }
                 new_row = new_row + `<td></td></tr>`;
                 $table_rows.eq(-1).after(new_row);
@@ -279,16 +285,37 @@
             let $addVar = $("#add_var");
             $addVar.click(function () {
                 let $testCases = $('#test_cases');
-                $testCases.find('tr').eq(0).find('th').eq(-2).after(`${var_name_th_html()}`);
-                $testCases.find('tr').eq(1).find('th').eq(-2).after(`${selector_th_html()}`);
+                $testCases.find('tr').eq(0).find('th').eq(-1).after(`${var_name_th_html()}`);
+                $testCases.find('tr').eq(1).find('th').eq(-1).after(`${selector_th_html()}`);
                 $testCases.find('tr').each(function () {
-                    $(this).find('td').eq(-1).before(`<td><input type="text" value="" class="test_val"/></td>`);
+                    $(this).find('td').eq(-1).before(`<td class="col_${colId}">
+<input type="text" name="value" value="" class="test_val"/></td>`);
                 });
                 generate_starter();
+                colId += 1;
             });
 
             $addVar.trigger("click");
             $addTestCase.trigger("click");
+
+            const RANDOM_MIN = -500;
+            const RANDOM_MAX = 500;
+
+            document.getElementById("fill_with_random").addEventListener("click", function () {
+                document.querySelectorAll("th.var_name_th").forEach(function(header) {
+                    const cols = Array.from(header.classList).filter(cls => cls.startsWith("col"));
+                    if(cols.length > 0) {
+                        const var_type = document.querySelector(`th.var_type_th.${cols[0]}`).children[0].value;
+                        if(var_type === "int") {
+                            document.querySelectorAll(`td.${cols[0]}`).forEach(
+                                x => x.children[0].value = Math.floor((Math.random() * (RANDOM_MAX-RANDOM_MIN)) + RANDOM_MIN));
+                        } else if(var_type === "float") {
+                            document.querySelectorAll(`td.${cols[0]}`).forEach(
+                                x => x.children[0].value = (Math.random() * (RANDOM_MAX-RANDOM_MIN)) + RANDOM_MIN);
+                        }
+                    }
+                });
+            });
 
             $("#test_cases").on("input", ".var_name,.var_type", function () {
                 generate_starter();
@@ -333,18 +360,16 @@
                     editor.clearSelection();
                 </script>
                 <h3>Input</h3>
+                <button id="add_var">Add Variable</button>
+                <button id="fill_with_random">Fill with random numbers</button>
                 <table id="test_cases" class="table">
                     <thead>
                     <tr>
                         <th scope="col" style="table-layout: fixed">var name:</th>
                         <th scope="col" style="table-layout: fixed">public</th>
-                        <th scope="col" style="table-layout: fixed">
-                            <button id="add_var">Add Variable</button>
-                        </th>
                     </tr>
                     <tr>
                         <th>type:</th>
-                        <th></th>
                         <th></th>
                     </tr>
                     </thead>

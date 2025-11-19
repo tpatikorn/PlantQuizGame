@@ -7,7 +7,7 @@ from managers import coding_manager
 from managers.coding_manager import test_code, eval_code
 from models.db_models import TestCase, Problem
 
-bp = Blueprint('coding', __name__, url_prefix='/coding')
+bp = Blueprint('coding', __name__)
 
 
 @bp.route('/test_creator')
@@ -15,7 +15,7 @@ def test_creator():
     categories = coding_manager.find_categories(language_id=1)
     return render_template("test_creator.html", categories=categories)
 
-
+@bp.route('/')
 @bp.route('/test_runner')
 def test_runner():
     categories = coding_manager.find_categories(language_id=1)

@@ -16,7 +16,7 @@
                     alert("จำนวนภาพที่ถูกต้อง ต้องมากกว่า จำนวนภาพทั้งหมด")
                     return false;
                 } else {
-                    window.location.href = "/game/treasure_hunt?" + params.toString();
+                    window.location.href = "/PlantQuizGame/game/treasure_hunt?" + params.toString();
                     return false;
                 }
             });
@@ -25,7 +25,7 @@
                 $.each($("#form_quick_draw").serializeArray(), function (i, field) {
                     params.set(field.name, field.value);
                 });
-                window.location.href = "/game/quick_draw?" + params.toString();
+                window.location.href = "/PlantQuizGame/game/quick_draw?" + params.toString();
                 return false;
             });
             $("#form_chat").submit(function() {
@@ -33,7 +33,7 @@
                 $.each($("#form_chat").serializeArray(), function(i, field) {
                     params.set(field.name, field.value);
                 });
-                window.location.href = "/game/chat?" +params.toString();
+                window.location.href = "/PlantQuizGame/game/chat?" +params.toString();
                 return false;
             })
             $("#treasure_hunt_info").click(function () {

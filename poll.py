@@ -4,7 +4,7 @@ from auth import login_required
 from managers import poll_manager
 from models.db_models import PollRoom
 
-bp = Blueprint('poll', __name__, url_prefix='/poll')
+bp = Blueprint('poll', __name__)
 
 
 @bp.route('/admin')

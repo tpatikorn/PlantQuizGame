@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanaporn Patikorn - Computer Scientist</title>
+    <!-- Load Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'primary': '#1D4ED8', // Blue-700 for accent
+                        'secondary': '#F9FAFB', // Light gray background
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar styling for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #9CA3AF; /* Gray-400 */
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6B7280; /* Gray-500 */
+        }
+    </style>
+</head>
+<body class="bg-secondary text-gray-800 antialiased">
+
+<!-- Header & Navigation (Fixed on scroll) -->
+<header class="sticky top-0 z-10 bg-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+        <h1 class="text-xl font-bold text-primary">Thanaporn Patikorn</h1>
+        <nav class="space-x-6 hidden sm:block">
+            <a href="#about" class="text-gray-600 hover:text-primary transition duration-300 font-medium">About Me</a>
+            <a href="#projects"
+               class="text-gray-600 hover:text-primary transition duration-300 font-medium">Projects</a>
+            <a href="#contact" class="text-gray-600 hover:text-primary transition duration-300 font-medium">Contact</a>
+            <a href="https://drive.google.com/file/d/1O_MbWwssZNrvPg1FEAWjBQLoDEgmz7Cq/view"
+               class="text-gray-600 hover:text-primary transition duration-300 font-medium">CV</a>
+            <a href="https://sites.google.com/site/tpatikorn/publication?authuser=0"
+               class="text-gray-600 hover:text-primary transition duration-300 font-medium">Publications</a>
+        </nav>
+        <!-- Mobile Menu Placeholder (Not functional, but shows responsiveness) -->
+        <button class="sm:hidden text-gray-600 hover:text-primary p-2 rounded-lg">
+            <svg class="w-6 h-6" stroke="currentColor" viewBox="0 0 24 24"
+                 xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+        </button>
+    </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16 space-y-16">
+
+    <!-- 1. Hero / About Me Section -->
+    <section id="about" class="bg-white p-6 sm:p-10 lg:p-16 rounded-3xl shadow-xl transition hover:shadow-2xl">
+        <div class="grid md:grid-cols-3 gap-8 items-center">
+            <div class="md:col-span-2">
+                <p class="text-lg font-semibold text-primary mb-2">Hello there, I'm</p>
+                <h2 class="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-6 leading-tight">
+                    Thanaporn "March" Patikorn
+                </h2>
+                <p class="text-xl text-gray-700 leading-relaxed">
+                    I am currently teaching Computer Science at <a href="https://www.rmutsb.ac.th">RMUTSB</a>, Thailand.
+                    My main interests revolve around the intersection of technology and education, specifically
+                    <strong>artificial intelligence, machine learning, crowdsourcing, and leveraging AI & data
+                        mining</strong> to enhance learning environments.
+                </p>
+                <p class="mt-4 text-md text-gray-500">
+                    I hold a Ph.D. in Computer Science from <a href="https://www.wpi.edu">Worcester Polytechnic
+                    Institute</a>, where I worked extensively
+                    with ASSISTments under the guidance of <a href="https://www.neilheffernan.net/">Professor Neil
+                    Heffernan</a>.
+                </p>
+            </div>
+            <!-- UPDATED IMAGE BLOCK START -->
+            <div class="md:col-span-1 flex justify-center">
+                <!-- Profile Picture Container: 56x56 units, circular, with shadow and border -->
+                <div class="w-56 h-56 border-4 border-primary/50 rounded-full shadow-lg overflow-hidden">
+                    <!-- Image Tag: w-full and h-full to fill container, object-cover to fit correctly -->
+                    <img
+                            src="{{ url_for("static", filename="tpatikorn.jpg") }}"
+                            alt="Thanaporn Patikorn profile image (tpatikorn.jpg)"
+                            class="w-full h-full object-cover"
+                    >
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. Projects Collection Section -->
+    <section id="projects" class="space-y-10">
+        <div class="text-center">
+            <h2 class="text-3xl font-bold text-gray-900 sm:text-4xl mb-3">Development Showcase & Labs</h2>
+            <p class="text-lg text-gray-500 max-w-2xl mx-auto">
+                A collection of projects and platforms (that I currently maintained) focusing on AI, data, and education
+                technology. Some started as something I wanted for my teaching, some are fun pet projects in my free
+                time, and some were student final projects.
+            </p>
+        </div>
+
+        <div class="max-w-3xl mx-auto">
+            <div class="relative">
+                <label for="search-input"></label><input
+                    type="text"
+                    id="search-input"
+                    placeholder="🔍 Search projects by title, description, or tag..."
+                    class="w-full p-4 pl-12 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary shadow-inner transition duration-200"
+            >
+            </div>
+        </div>
+
+        <div id="project-cards" class="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            <!-- Project Cards will be dynamically generated here (or hardcoded) -->
+
+            <script>
+                const projects = [
+                    {
+                        title: "Plant Quiz Game",
+                        description: "A collection of games that test your ability to identify plant diseases from images",
+                        link: "https://tpatikorn.com/PlantQuizGame/",
+                        icon: "🌿",
+                        tags: ["Education", "Gamification", "Python Project"],
+                    },
+                    {
+                        title: "Coding Test Runner (Game)",
+                        description: "My attempt to create a coding game, but ended up being a test runner that allows students to write Python code against pre-made test cases and automatically grade it.",
+                        link: "https://tpatikorn.com/coding/",
+                        icon: "‍💻",
+                        tags: ["Education", "Coding", "Python", "Gamification", "Python Project"],
+                    },
+                    {
+                        title: "ML-Herb",
+                        description: "A student final project that asks a simple question: can we identify local herbs using machine learning?",
+                        link: "https://tpatikorn.com/ml-herb/",
+                        icon: "🧠",
+                        tags: ["Machine Learning", "CNN", "Image Classification", "Herb", "Python Project", "Student Project"],
+                    },
+                    {
+                        title: "OSCE Digital Management",
+                        description: "A demo for web application that allows examiners to digitally proctor Objective Structured Clinical Examination (OSCE).",
+                        link: "https://tpatikorn.com/OSCE/entry",
+                        icon: "📈",
+                        tags: ["Education", "Station-Based Exam", "Proctoring", "Python Project"],
+                    },
+                    {
+                        title: "EPUB Reader",
+                        description: "A simple online epub reader with text-to-speech (TTS). (currently taken down for maintainance)",
+                        link: "https://tpatikorn.com/",
+                        icon: "📖",
+                        tags: ["Text-to-Speech", "Python Project"],
+                    },
+                    {
+                        title: "Vocab Flash Card",
+                        description: "A web application that helps you learn vocabulary using variety of flash cards",
+                        link: "https://tpatikorn.com/flash_card",
+                        icon: "𝐖",
+                        tags: ["Education", "English Language Learning", "Vocabulary", "Gamification", "Python Project"],
+                    },
+                    {
+                        title: "Crowdsourced Dictionary",
+                        description: "A website that allows for custom word definitions. My initial idea is to allow people to add new words/slangs that pops up so that we (adults) and computers (NLP) could understand it. When this got turned into a student final project, a certain \"dinosaur\" couldn't see the value to that, so the purpose got bent into a web application that helps students learn by explaining words or concepts.",
+                        link: "https://tpatikorn.com/php_demo/dictionary/pages/main.php",
+                        icon: "📚",
+                        tags: ["Education", "Crowdsourcing", "Dictionary", "Natural Language Processing", "PHP Project", "Student Project"],
+                    },
+                    {
+                        title: "FDA Scanner",
+                        description: "A web application that uses image processing (object detection + OCR) to extract Thai FDA numbers ( เลข อย.) from photos of products. Started as student project.",
+                        link: "https://tpatikorn.com/fda_scan/",
+                        icon: "📷",
+                        tags: ["Image Processing", "Object Detection", "Optical Character Recognition", "FDA", "Python Project", "Student Project"],
+                    },
+                    {
+                        title: "PHP Demo for Audio Model from Teachable Machine",
+                        description: "It's a PHP Demo for Audio Model from Teachable Machine. This model detects a clapping sound.",
+                        link: "https://tpatikorn.com/php_demo/clapper.html",
+                        icon: "👏",
+                        tags: ["Audio Processing", "Teachable Machine", "PHP Demo"],
+                    },
+                    {
+                        title: "PHP Demo for Google Login",
+                        description: "It's a PHP Demo for Google Login",
+                        link: "https://tpatikorn.com/php_demo/main_app/views/",
+                        icon: "🇬",
+                        tags: ["Google Login", "PHP Demo"],
+                    },
+                    {
+                        title: "Exam Clock (with Cats)",
+                        description: "An exam clock with videos of cats. Put it on the projector while students work on their exam. Serve as both a clock and distrac- I mean relaxation for students.",
+                        link: "https://tpatikorn.github.io/RandomCode/clock",
+                        icon: "🕑",
+                        tags: ["HTML Snippet", "Exam Proctoring"],
+                    },
+                    {
+                        title: "Wordcloud Generator from Google Sheet",
+                        description: "Automatically generate wordcloud from Google Sheet. Has auto-refresh function. The sheet must be publicly accessible.",
+                        link: "https://tpatikorn.github.io/RandomCode/wordcloud",
+                        icon: "☁️",
+                        tags: ["HTML Snippet", "Wordcloud"],
+                    },
+                    {
+                        title: "Reinforcement Learning Example (Bandits)",
+                        description: "A quick example of reinforcement learning. Give this link to students and let them compete. Then discuss strategies. This is exploration vs exploitation.",
+                        link: "https://tpatikorn.github.io/RandomCode/reinforce",
+                        icon: "🚪",
+                        tags: ["HTML Snippet", "Reinforcement Learning", "Education"],
+                    },
+                    {
+                        title: "Math Markup Language (MathML) Generator",
+                        description: "Generate MathML from \"typical\" math syntax like ^ for superscript, _ for subscript, integral, and limit support. Also output the preview",
+                        link: "https://tpatikorn.github.io/RandomCode/math_ml",
+                        icon: "➗",
+                        tags: ["HTML Snippet", "MathML", "Formula", "Education"],
+                    },
+                    {
+                        title: "Limit Problems",
+                        description: "A quick set of limit problems with answers.",
+                        link: "https://tpatikorn.github.io/RandomCode/limit_problems",
+                        icon: "❓",
+                        tags: ["HTML Snippet", "Limit", "Calculus", "Education"],
+                    },
+                    {
+                        title: "GPA Calculator",
+                        description: "Started with simple questions: \"what grades does this student need in order to achieve at this [this] GPA given their current grades? Support retaking courses and/or regrading.",
+                        link: "https://tpatikorn.github.io/RandomCode/grade_calculator",
+                        icon: "💯",
+                        tags: ["HTML Snippet", "Education", "Academic Advising"],
+                    },
+                ];
+
+                const cardContainer = document.getElementById('project-cards');
+                const searchInput = document.getElementById('search-input');
+
+                // Function to render the project cards based on a provided array
+                function renderCards(projectsToRender) {
+                    cardContainer.innerHTML = ''; // Clear existing cards
+
+                    // If no results, show a message
+                    if (projectsToRender.length === 0) {
+                        cardContainer.innerHTML = '<p class="text-center text-gray-500 col-span-full py-10 text-lg">No projects found matching your search criteria.</p>';
+                        return;
+                    }
+
+                    projectsToRender.forEach(project => {
+                        // Generate HTML for tags
+                        const tagsHtml = project.tags.map(tag => `
+                            <span class="inline-block bg-gray-100 text-gray-600 text-xs font-medium mr-2 mt-2 px-3 py-1 rounded-full border border-gray-200 hover:bg-gray-200 transition duration-150 cursor-default whitespace-nowrap">
+                                ${tag}
+                            </span>
+                        `).join('');
+
+                        const cardHtml = `
+                            <a href="${project.link}" target="_blank" class="block group">
+                                <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 h-full border-b-4 border-primary/0 group-hover:border-primary/70 flex flex-col justify-between">
+                                    <div>
+                                        <div class="flex items-start mb-4 space-x-4">
+                                            <!-- Thumbnail/Icon Placeholder -->
+                                            <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-2xl shadow-inner flex-shrink-0">
+                                                ${project.icon}
+                                            </div>
+                                            <h3 class="text-xl font-bold text-gray-900 group-hover:text-primary transition duration-300">${project.title}</h3>
+                                        </div>
+                                        <p class="text-gray-600 mb-4">${project.description}</p>
+                                    </div>
+
+                                    <!-- Tags Section (New) -->
+                                    <div class="mt-4 pt-4 border-t border-gray-100 flex flex-wrap">
+                                        ${tagsHtml}
+                                    </div>
+
+                                    <span class="text-sm font-semibold text-primary/80 group-hover:text-primary mt-4 block">
+                                        Visit Site &rarr;
+                                    </span>
+                                </div>
+                            </a>
+                        `;
+                        cardContainer.insertAdjacentHTML('beforeend', cardHtml);
+                    });
+                }
+
+                // Function to handle filtering
+                function handleSearch() {
+                    const searchTerm = searchInput.value.toLowerCase().trim();
+
+                    if (!searchTerm) {
+                        // If search box is empty, show all projects
+                        renderCards(projects);
+                        return;
+                    }
+
+                    const filteredProjects = projects.filter(project => {
+                        const titleMatch = project.title.toLowerCase().includes(searchTerm);
+                        const descMatch = project.description.toLowerCase().includes(searchTerm);
+                        // Check if any tag includes the search term
+                        const tagsMatch = project.tags.some(tag => tag.toLowerCase().includes(searchTerm));
+
+                        return titleMatch || descMatch || tagsMatch;
+                    });
+
+                    renderCards(filteredProjects);
+                }
+
+                // Initial render and attaching the search listener
+                document.addEventListener('DOMContentLoaded', () => {
+                    renderCards(projects);
+                    searchInput.addEventListener('keyup', handleSearch);
+                });
+            </script>
+        </div>
+        <!-- Ensure 3 columns on desktop, 2 on tablet, 1 on mobile -->
+    </section>
+
+</main>
+
+<!-- Footer / Contact Section -->
+<footer id="contact" class="bg-gray-800 text-white mt-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 text-center">
+        <h3 class="text-2xl font-semibold mb-4">Get in Touch</h3>
+        <p class="text-gray-400 mb-6">
+            For academic inquiries, collaborations, or questions about my work, please reach out via email.
+        </p>
+        Email:
+        <a href="mailto:thanaporn.pa@rmutsb.ac.th"
+           class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-sm text-gray-800 bg-white hover:bg-gray-200 transition duration-300">
+            thanaporn.pa(at)rmutsb.ac.th
+        </a>
+        <a href="mailto:tpatikorn@gmail.com"
+           class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-sm text-gray-800 bg-white hover:bg-gray-200 transition duration-300">
+            tpatikorn(at)gmail.com
+        </a>
+        <p class="mt-8 text-sm text-gray-500">
+            &copy; 2025 Thanaporn Patikorn. Built with Tailwind CSS.
+        </p>
+    </div>
+</footer>
+
+</body>
+</html>

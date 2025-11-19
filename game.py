@@ -4,7 +4,7 @@ from managers.image_manager import fetch_tags
 from models.db_models import Tag
 from util.util import set_seed
 
-bp = Blueprint('game', __name__, url_prefix='/game')
+bp = Blueprint('game', __name__)
 
 
 @bp.route('/treasure_hunt', methods=['GET'])
@@ -21,7 +21,7 @@ def treasure_hunt():
     else:
         category = fetch_tags(conditions=[Tag.name == target_type], limit=1)[0]
     img, ans = image_treasure_hunt(n_pics, n_correct, category.id, seed=seed)
-    all_img_src = [f"/images/{i.id}" for i in img]
+    all_img_src = [f"/PlantQuizGame/images/{i.id}" for i in img]
 
     obj = {
         "n_pics": n_pics,
@@ -56,7 +56,7 @@ def quick_draw():
         target_type = fetch_tags(conditions=[Tag.name == target_type_name])[0]
 
     img, ans = image_quick_draw(n_rounds, n_choices, target_type.id, seed=seed)
-    all_img_src = [f"/images/{i.id}" for i_row in img for i in i_row]
+    all_img_src = [f"/PlantQuizGame/images/{i.id}" for i_row in img for i in i_row]
     return render_template("quick_draw.html", img=img, ans=ans, all_img_src=all_img_src,
                            n_rounds=n_rounds, target_type=target_type.name, n_choices=n_choices)
 
@@ -73,7 +73,7 @@ def chat():
     seed = request.args.get("seed", default=set_seed())
 
     img, ans = image_chat(n_rounds, n_choices, seed=seed)
-    all_img_src = [f"/images/{i.id}" for i_row in img for i in i_row]
+    all_img_src = [f"/PlantQuizGame/images/{i.id}" for i_row in img for i in i_row]
 
     return render_template("chat.html", img=img, ans=ans, all_img_src=all_img_src,
                            n_rounds=n_rounds, n_choices=n_choices)

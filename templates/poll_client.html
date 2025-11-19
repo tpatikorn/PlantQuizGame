@@ -24,7 +24,7 @@
                 alert("you must first login with Google (top right)");
             {% endif %}
             let $choice = $(".choices");
-            let socket = io();
+            let socket = io("/PlantQuizGame");
 
             function join_room() {
                 socket.emit('poll_join_event', [user_id, room_code], response => {

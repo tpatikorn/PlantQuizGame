@@ -8,7 +8,7 @@ from werkzeug.exceptions import BadRequestKeyError
 
 from managers import user_manager
 
-bp = Blueprint('auth', __name__, url_prefix='/auth')
+bp = Blueprint('auth', __name__)
 
 CONF_URL = 'https://accounts.google.com/.well-known/openid-configuration'
 oauth = OAuth()
@@ -54,4 +54,4 @@ def login():
 @bp.route('/logout')
 def logout():
     session.pop('user', None)
-    return redirect('/index')
+    return redirect('/')
