@@ -260,8 +260,8 @@
 
                 function renderTags(projectsToRender) {
                     tagContainer.innerHTML = '';
-                    let all_tags = {"All Projects": projects.length};
-                    projects.forEach(project =>
+                    let all_tags = {"All Projects": projectsToRender.length};
+                    projectsToRender.forEach(project =>
                         project.tags.forEach(tag =>
                             // increment if exists, set to 1 otherwise
                             all_tags[tag] = (tag in all_tags) ? all_tags[tag] + 1 : 1));
