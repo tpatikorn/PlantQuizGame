@@ -115,4 +115,4 @@ this_app.register_blueprint(coding.bp, url_prefix="/coding")
 auth.oauth.init_app(this_app)
 
 if __name__ == "__main__":
-    socketio.run(this_app, "127.0.0.1", 8081, allow_unsafe_werkzeug=True)
+    socketio.run(this_app, "127.0.0.1", 18080, allow_unsafe_werkzeug=True)

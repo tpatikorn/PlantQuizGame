@@ -124,6 +124,15 @@
                     class="w-full p-4 pl-12 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary shadow-inner transition duration-200"
             >
             </div>
+
+
+            <div id="tags">
+                <a onclick="searchFor('Student Project')">
+                <span class="inline-block bg-gray-100 text-gray-600 text-xs font-medium mr-2 mt-2 px-3 py-1 rounded-full border border-gray-200 hover:bg-gray-200 transition duration-150 cursor-default whitespace-nowrap">
+                    Student Project
+                </span>
+                </a>
+            </div>
         </div>
 
         <div id="project-cards" class="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
@@ -246,7 +255,41 @@
                 ];
 
                 const cardContainer = document.getElementById('project-cards');
+                const tagContainer = document.getElementById('tags');
                 const searchInput = document.getElementById('search-input');
+
+                function renderTags(projectsToRender) {
+                    tagContainer.innerHTML = '';
+                    let all_tags = {"All Projects": projects.length};
+                    projects.forEach(project =>
+                        project.tags.forEach(tag =>
+                            // increment if exists, set to 1 otherwise
+                            all_tags[tag] = (tag in all_tags) ? all_tags[tag] + 1 : 1));
+                    console.log(all_tags);
+                    let tag_sorted = [];
+                    for (const tag in all_tags) {
+                        tag_sorted.push([tag, all_tags[tag]]);
+                    }
+                    tag_sorted.sort((a, b) => b[1] - a[1]);
+                    console.log(tag_sorted);
+
+                    tag_sorted.forEach(tag => {
+                        const tag_link = document.createElement("a");
+                        tag_link.setAttribute("onclick", `searchFor("${tag[0]}")`);
+
+                        const tag_span = document.createElement("span");
+                        tag_span.classList.add("inline-block", "bg-gray-100", "text-gray-600", "text-xs", "font-medium", "mr-2", "mt-2", "px-3", "py-1", "rounded-full", "border", "border-gray-200", "hover:bg-gray-200", "transition", "duration-150", "cursor-default", "whitespace-nowrap");
+                        tag_span.innerText = `${tag[0]} (${tag[1]})`;
+
+                        tag_link.appendChild(tag_span);
+                        tagContainer.appendChild(tag_link);
+                    });
+                }
+
+                function searchFor(tag) {
+                    searchInput.value = tag === "All Projects" ? "" : tag;
+                    handleSearch();
+                }
 
                 // Function to render the project cards based on a provided array
                 function renderCards(projectsToRender) {
@@ -320,6 +363,7 @@
                 // Initial render and attaching the search listener
                 document.addEventListener('DOMContentLoaded', () => {
                     renderCards(projects);
+                    renderTags(projects);
                     searchInput.addEventListener('keyup', handleSearch);
                 });
             </script>
